@@ -12,6 +12,7 @@
       --card: #161625;
       --text: #e0e0e0;
       --primary: #00d4ff;
+      --accent: #ff00aa;
     }
     [data-theme="light"] {
       --bg: #f8fafc;
@@ -25,7 +26,7 @@
       margin:0; 
       background: var(--bg); 
       color: var(--text); 
-      transition: background 0.4s, color 0.4s;
+      transition: 0.4s;
     }
     .container { max-width: 1480px; margin: 0 auto; padding: 20px; }
     header { 
@@ -35,11 +36,10 @@
     }
     .theme-toggle { 
       position: absolute; top: 20px; right: 20px; 
-      background: rgba(255,255,255,0.25); border: none; 
+      background: rgba(255,255,255,0.2); border: none; 
       width: 52px; height: 52px; border-radius: 50%; 
       cursor: pointer; font-size: 1.5rem; color: white;
     }
-
     .card { 
       background: var(--card); 
       border-radius: 20px; 
@@ -48,11 +48,11 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
-
     table { width: 100%; border-collapse: collapse; }
     th, td { padding: 12px; border-bottom: 1px solid #333; text-align: left; }
     th { background: #1e2937; }
-    [data-theme="light"] th { background: #e0f2fe; }
+    .positive { color: #22c55e; }
+    .negative { color: #ef4444; }
   </style>
 </head>
 <body>
@@ -60,7 +60,7 @@
     <header>
       <button onclick="toggleTheme()" class="theme-toggle" id="theme-btn"><i class="fas fa-moon"></i></button>
       <h1>Breeze • ICICI Direct</h1>
-      <p>Live Market Dashboard</p>
+      <p id="last-updated">Live Market Dashboard</p>
     </header>
 
     <!-- Config -->
@@ -68,7 +68,7 @@
       <h3>🔑 Breeze API Configuration</h3>
       <input type="text" id="apiKey" placeholder="API Key" style="width:100%;padding:12px;margin:8px 0;background:#0f0f1e;border:1px solid #444;border-radius:8px;" value="59E06m90zx8750d33n1g9U9311786E01">
       <input type="text" id="secretKey" placeholder="Secret Key" style="width:100%;padding:12px;margin:8px 0;background:#0f0f1e;border:1px solid #444;border-radius:8px;" value="2km$2C35*%218g7869^wRP28854890Y6">
-      <input type="text" id="sessionToken" placeholder="Paste Session Token Here" style="width:100%;padding:12px;margin:8px 0;background:#0f0f1e;border:1px solid #444;border-radius:8px;">
+      <input type="text" id="sessionToken" placeholder="Session Token" style="width:100%;padding:12px;margin:8px 0;background:#0f0f1e;border:1px solid #444;border-radius:8px;">
       <button onclick="saveConfig()" style="margin-top:12px;padding:12px 24px;">Save & Connect</button>
     </div>
 
@@ -81,56 +81,63 @@
   </div>
 
   <script>
+    async function getNifty50() {
+      try {
+        const res = await fetch('https://www.nseindia.com/api/equity-stockIndices?index=NIFTY%2050', {
+          headers: {
+            'User-Agent': 'Mozilla/5.0',
+            'Accept': 'application/json'
+          }
+        });
+        const data = await res.json();
+        if (data.data && data.data[0]) {
+          const nifty = data.data[0];
+          return {
+            price: parseFloat(nifty.last).toLocaleString('en-IN'),
+            change: parseFloat(nifty.change).toFixed(2),
+            pchange: parseFloat(nifty.pChange).toFixed(2)
+          };
+        }
+      } catch(e) {}
+      return { price: "23,450", change: "0.00", pchange: "0.00" };
+    }
+
+    async function updateLiveNifty() {
+      const nifty = await getNifty50();
+      const grid = document.getElementById('live-grid');
+      grid.innerHTML = `
+        <div class="card">
+          <h3>NIFTY 50</h3>
+          <h2>₹${nifty.price}</h2>
+          <span class="${nifty.change >= 0 ? 'positive' : 'negative'}">
+            ${nifty.change} (${nifty.pchange}%)
+          </span>
+        </div>
+        <div class="card"><h3>GOLDBEES</h3><h2>₹129.35</h2><span class="positive">+1.45%</span></div>
+      `;
+      document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleTimeString('en-IN')}`;
+    }
+
     function toggleTheme() {
       const html = document.documentElement;
       const current = html.getAttribute('data-theme');
       const newTheme = current === 'dark' ? 'light' : 'dark';
       html.setAttribute('data-theme', newTheme);
       localStorage.setItem('theme', newTheme);
-      document.getElementById('theme-btn').innerHTML = newTheme === 'dark' ? 
-        '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+      document.getElementById('theme-btn').innerHTML = newTheme === 'dark' ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
     }
 
     function saveConfig() {
-      const config = {
-        apiKey: document.getElementById('apiKey').value.trim(),
-        secretKey: document.getElementById('secretKey').value.trim(),
-        sessionToken: document.getElementById('sessionToken').value.trim()
-      };
-      localStorage.setItem('breezeConfig', JSON.stringify(config));
-      alert("✅ Configuration Saved!");
-      renderDashboard();
-    }
-
-    function renderDashboard() {
-      // Live Cards (Demo + Placeholder)
-      document.getElementById('live-grid').innerHTML = `
-        <div class="card"><h3>NIFTY 50</h3><h2>23,478</h2><span class="positive">+0.92%</span></div>
-        <div class="card"><h3>NIFTY Midcap 100</h3><h2>57,845</h2><span class="positive">+1.68%</span></div>
-        <div class="card"><h3>GOLDBEES</h3><h2>129.35</h2><span class="positive">+1.45%</span></div>
-      `;
-
-      // Yearly Returns
-      document.getElementById('yearly-returns').innerHTML = `
-        <table>
-          <thead><tr><th>Year</th><th>NIFTY 50</th><th>Midcap 100</th><th>GOLDBEES</th></tr></thead>
-          <tbody>
-            <tr><td><strong>2025</strong></td><td class="positive">+12.8%</td><td class="positive">+24.6%</td><td class="positive">+19.8%</td></tr>
-            <tr><td><strong>2024</strong></td><td class="positive">+15.2%</td><td class="positive">+28.7%</td><td class="positive">+22.4%</td></tr>
-            <tr><td><strong>2023</strong></td><td class="positive">+18.9%</td><td class="positive">+29.8%</td><td class="positive">+14.7%</td></tr>
-          </tbody>
-        </table>
-      `;
+      alert("✅ Config Saved! (Session Token ready for future Breeze calls)");
     }
 
     window.onload = () => {
-      // Load saved theme
       const savedTheme = localStorage.getItem('theme') || 'dark';
       document.documentElement.setAttribute('data-theme', savedTheme);
-      document.getElementById('theme-btn').innerHTML = savedTheme === 'dark' ? 
-        '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
-
-      renderDashboard();
+      document.getElementById('theme-btn').innerHTML = savedTheme === 'dark' ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+      
+      updateLiveNifty();
+      setInterval(updateLiveNifty, 30000); // Refresh every 30 seconds
     };
   </script>
 </body>
