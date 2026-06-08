@@ -372,30 +372,39 @@
       return;
     }
 
+    // Loop through each holding
     result.data.forEach(item => {
-      const symbol   = item.stock_code || "N/A";
-      const qty      = parseFloat(item.quantity) || 0;
-      const avgPrice = parseFloat(item.average_price) || 0;
-      const ltp      = parseFloat(item.current_market_price) || 0;
-      const value    = qty * ltp;
-      const pnl      = (avgPrice > 0) ? ((ltp - avgPrice) / avgPrice * 100).toFixed(2) : "0.00";
+      const symbol     = item.stock_code || "N/A";
+      const qty        = parseFloat(item.quantity) || 0;
+      const avgPrice   = parseFloat(item.average_price) || 0;
+      const ltp        = parseFloat(item.current_market_price) || 0;
+      const value      = qty * ltp;
+      const pnlPercent = (avgPrice > 0) ? ((ltp - avgPrice) / avgPrice * 100).toFixed(2) : "0.00";
 
       const row = document.createElement("tr");
-      row.className = "border-b border-zinc-800";
+      row.className = "border-b border-zinc-800 hover:bg-zinc-900";
+
       row.innerHTML = `
         <td class="py-3 font-medium">${symbol}</td>
         <td>${qty}</td>
         <td>₹${avgPrice.toFixed(2)}</td>
         <td>₹${ltp.toFixed(2)}</td>
         <td>₹${value.toFixed(2)}</td>
-        <td class="${pnl >= 0 ? 'text-emerald-400' : 'text-red-400'} font-medium">${pnl}%</td>
+        <td class="${pnlPercent >= 0 ? 'text-emerald-400' : 'text-red-400'} font-medium">${pnlPercent}%</td>
       `;
+
       tbody.appendChild(row);
     });
 
   } catch (error) {
-    console.error(error);
-    tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-red-400">${error.message}</td></tr>`;
+    console.error("Error:", error);
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="py-6 text-center text-red-400">
+          ${error.message}
+        </td>
+      </tr>
+    `;
   }
 }
 
