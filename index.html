@@ -23,6 +23,7 @@
     th { background: #1e2937; }
     .positive { color: #22c55e; }
     .negative { color: #ef4444; }
+    button { padding: 12px 24px; border: none; border-radius: 12px; background: var(--primary); color: #000; font-weight: bold; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -45,6 +46,13 @@
     <div class="card">
       <h3>📊 Year-wise Performance (Last 10 Years)</h3>
       <div id="year-table" style="overflow-x:auto;"></div>
+    </div>
+  </div>
+  <!-- New Download Section -->
+    <div class="card">
+      <h3>📥 Download Historical Bhavcopy (NSE Official)</h3>
+      <button onclick="downloadBhavcopy()">Download Today's Bhavcopy (CSV.zip)</button>
+      <p style="margin-top:10px; font-size:0.9rem; color:#888;">Official NSE daily market snapshot</p>
     </div>
   </div>
 
@@ -114,6 +122,22 @@
       updateLiveData();
       setInterval(updateLiveData, 60000); // Refresh every minute
     };
+
+    function downloadBhavcopy() {
+      const date = new Date();
+      const yyyy = date.getFullYear();
+      const mm = date.toLocaleString('default', { month: 'short' }).toUpperCase();
+      const dd = String(date.getDate()).padStart(2, '0');
+      
+      const url = `https://nsearchives.nseindia.com/content/historical/EQUITIES/${yyyy}/${mm}/cm${dd}${mm}${yyyy}bhav.csv.zip`;
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `bhavcopy_${dd}${mm}${yyyy}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
 
     function toggleTheme() {
       const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
