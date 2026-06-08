@@ -23,6 +23,7 @@
     th { background: #1e2937; }
     .positive { color: #22c55e; }
     .negative { color: #ef4444; }
+    .error { color: #f87171; font-size: 0.9rem; }
   </style>
 </head>
 <body>
@@ -49,101 +50,66 @@
       { name: "GOLDBEES", symbol: "GOLDBEES" }
     ];
 
-    async function fetchYearlyReturns(symbol) {
+    async function fetchWithFallback(symbol) {
       try {
         const url = `https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY&symbol=${symbol}&apikey=${API_KEY}`;
         const res = await fetch(url);
         const data = await res.json();
 
-        if (!data["Monthly Time Series"]) return null;
-
-        const monthly = data["Monthly Time Series"];
-        const years = {};
-
-        Object.keys(monthly).forEach(date => {
-          const year = date.substring(0, 4);
-          if (!years[year]) years[year] = { open: null, close: null };
-
-          const monthData = monthly[date];
-          if (!years[year].open) years[year].open = parseFloat(monthData["1. open"]);
-          years[year].close = parseFloat(monthData["4. close"]);
-        });
-
-        const yearlyReturns = {};
-        const sortedYears = Object.keys(years).sort().reverse();
-
-        sortedYears.forEach((year, i) => {
-          if (i < sortedYears.length - 1) {
-            const currentClose = years[year].close;
-            const prevClose = years[sortedYears[i+1]].close;
-            const returnPct = ((currentClose - prevClose) / prevClose) * 100;
-            yearlyReturns[year] = returnPct.toFixed(2);
-          }
-        });
-
-        return { symbol, yearlyReturns };
-      } catch (e) {
-        console.error(e);
-        return null;
-      }
+        if (data["Monthly Time Series"]) {
+          return data["Monthly Time Series"];
+        }
+      } catch(e) {}
+      return null;
     }
 
-    async function renderYearlyTable() {
+    async function renderYearlyReturns() {
       const container = document.getElementById('yearly-returns');
       let html = `<table><thead><tr><th>Year</th>`;
 
-      for (let asset of assets) {
-        html += `<th>${asset.name}</th>`;
-      }
+      assets.forEach(asset => html += `<th>${asset.name}</th>`);
       html += `</tr></thead><tbody>`;
 
-      const results = [];
+      const allData = {};
+
       for (let asset of assets) {
-        const data = await fetchYearlyReturns(asset.symbol);
-        if (data) results.push(data);
+        const monthlyData = await fetchWithFallback(asset.symbol);
+        if (monthlyData) {
+          const yearly = {};
+          Object.keys(monthlyData).forEach(date => {
+            const year = date.substring(0, 4);
+            if (!yearly[year]) yearly[year] = { first: null, last: null };
+            const val = parseFloat(monthlyData[date]["4. close"]);
+            if (!yearly[year].first) yearly[year].first = val;
+            yearly[year].last = val;
+          });
+
+          allData[asset.name] = yearly;
+        }
       }
 
-      const allYears = [...new Set(results.flatMap(r => Object.keys(r.yearlyReturns)))].sort().reverse();
+      // Get all years
+      const years = new Set();
+      Object.values(allData).forEach(data => Object.keys(data).forEach(y => years.add(y)));
+      const sortedYears = Array.from(years).sort().reverse();
 
-      allYears.forEach(year => {
+      sortedYears.forEach(year => {
         html += `<tr><td><strong>${year}</strong></td>`;
-        results.forEach(result => {
-          const ret = result.yearlyReturns[year] || '—';
-          const cls = ret > 0 ? 'positive' : (ret < 0 ? 'negative' : '');
-          html += `<td class="${cls}">${ret}%</td>`;
+        assets.forEach(asset => {
+          const data = allData[asset.name];
+          if (data && data[year]) {
+            const ret = ((data[year].last - data[year].first) / data[year].first * 100).toFixed(1);
+            const cls = ret > 0 ? 'positive' : 'negative';
+            html += `<td class="${cls}">${ret}%</td>`;
+          } else {
+            html += `<td class="error">—</td>`;
+          }
         });
         html += `</tr>`;
       });
 
       html += `</tbody></table>`;
-      container.innerHTML = html;
-    }
-
-    async function updateLivePrices() {
-      const grid = document.getElementById('live-grid');
-      grid.innerHTML = '';
-
-      for (let asset of assets) {
-        try {
-          const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${asset.symbol}&apikey=${API_KEY}&outputsize=compact`;
-          const res = await fetch(url);
-          const data = await res.json();
-
-          if (data["Time Series (Daily)"]) {
-            const latest = Object.values(data["Time Series (Daily)"])[0];
-            const price = parseFloat(latest["4. close"]).toFixed(2);
-
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = `
-              <h3>${asset.name}</h3>
-              <h2>₹${price}</h2>
-              <span class="positive">Live</span>
-            `;
-            grid.appendChild(card);
-          }
-        } catch(e) {}
-      }
+      container.innerHTML = html || '<p class="error">No historical data available at the moment.</p>';
     }
 
     function toggleTheme() {
@@ -153,9 +119,8 @@
     }
 
     window.onload = () => {
-      renderYearlyTable();
-      updateLivePrices();
-      setInterval(updateLivePrices, 300000); // Refresh every 5 mins
+      renderYearlyReturns();
+      document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleTimeString('en-IN')}`;
     };
   </script>
 </body>
