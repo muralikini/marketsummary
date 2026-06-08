@@ -225,6 +225,7 @@
 
   <script>
     // ==================== DATA FROM EXCEL ====================
+    // ==================== DATA FROM EXCEL ====================
     const equityData = [
       {year:2025, n50:12.4, mid:24.6, small:31.2, n250:18.4, gold:19.8, silver:28.5, cpse:22.1},
       {year:2024, n50:15.2, mid:28.7, small:35.9, n250:22.1, gold:22.4, silver:31.2, cpse:18.7},
@@ -248,6 +249,7 @@
       {year:2022, ratio:85}, {year:2021, ratio:71.6}, {year:2020, ratio:77.2}
     ];
 
+    
     const commodityData = [
       {year:2026, rice:43, wheat:31, milk:60, petrol:102, diesel:98, lpg:913},
       {year:2025, rice:42, wheat:31, milk:59, petrol:105, diesel:101, lpg:870},
@@ -278,8 +280,14 @@
 
     function renderCommodityTable() {
       const tbody = document.getElementById('commodity-table');
+      const data = [
+        {year:2026, rice:43, wheat:31, milk:60, petrol:102, diesel:98, lpg:913},
+        {year:2025, rice:42, wheat:31, milk:59, petrol:105, diesel:101, lpg:870},
+        {year:2024, rice:41, wheat:30.5, milk:58, petrol:100, diesel:96, lpg:803},
+        {year:2020, rice:37, wheat:28, milk:52, petrol:80, diesel:76, lpg:780},
+      ];
       tbody.innerHTML = '';
-      commodityData.forEach(row => {
+      data.forEach(row => {
         const tr = document.createElement('tr');
         tr.className = 'border-b border-zinc-800';
         tr.innerHTML = `
@@ -328,9 +336,7 @@
       document.querySelectorAll('.nav-btn').forEach((btn, i) => btn.classList.toggle('nav-active', i === tab));
     }
 
-    function connectToBreeze() {
-      alert("Real ICICI Direct integration requires a secure backend.\nWe can add it in the next version.");
-    }
+    
 
     // ==================== BREEZE HOLDINGS INTEGRATION ====================
   async function fetchBreezeHoldings() {
@@ -413,202 +419,150 @@ function hideRawResponse() {
   document.getElementById('raw-response').classList.add('hidden');
 }
 
-function renderCommodityTable() {
-  const tbody = document.getElementById('commodity-table');
-  const commodityData = [
-    {year:2026, rice:43, wheat:31, milk:60, petrol:102, diesel:98, lpg:913},
-    {year:2025, rice:42, wheat:31, milk:59, petrol:105, diesel:101, lpg:870},
-    {year:2024, rice:41, wheat:30.5, milk:58, petrol:100, diesel:96, lpg:803},
-    {year:2020, rice:37, wheat:28, milk:52, petrol:80, diesel:76, lpg:780},
-  ];
+// ==================== ANALYTICS TAB ====================
+    const popularScrips = [
+      "RELIANCE", "TCS", "HDFCBANK", "INFY", "ICICIBANK", 
+      "SBIN", "BHARTIARTL", "ITC", "LT", "AXISBANK",
+      "NIFTY 50", "GOLDBEES", "SILVERBEES", "MOTNAS", "MOT100"
+    ];
 
-  tbody.innerHTML = '';
-  commodityData.forEach(row => {
-    const tr = document.createElement('tr');
-    tr.className = 'border-b border-zinc-800';
-    tr.innerHTML = `
-      <td class="py-3 font-medium">${row.year}</td>
-      <td>₹${row.rice}</td>
-      <td>₹${row.wheat}</td>
-      <td>₹${row.milk}</td>
-      <td>₹${row.petrol}</td>
-      <td>₹${row.diesel}</td>
-      <td>₹${row.lpg}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+    let watchlist = [];
+    let currentChart = null;
 
-  // Popular scrips list (you can expand this)
-const popularScrips = [
-  "RELIANCE", "TCS", "HDFCBANK", "INFY", "ICICIBANK", 
-  "SBIN", "BHARTIARTL", "ITC", "LT", "AXISBANK",
-  "NIFTY 50", "GOLDBEES", "SILVERBEES", "MOTNAS", "MOT100"
-];
+    function loadScripDropdown() {
+      const select = document.getElementById('scripSelect');
+      if (!select) return;
 
-let watchlist = [];
-let currentChart = null;
-
-function loadScripDropdown() {
-  const select = document.getElementById('scripSelect');
-  if (!select) return;
-
-  const popularScrips = [
-    "RELIANCE", "TCS", "HDFCBANK", "INFY", "ICICIBANK", 
-    "SBIN", "BHARTIARTL", "ITC", "LT", "AXISBANK",
-    "NIFTY 50", "GOLDBEES", "SILVERBEES", "MOTNAS", "MOT100"
-  ];
-
-  select.innerHTML = '<option value="">Select a scrip...</option>';
-  popularScrips.forEach(scrip => {
-    const option = document.createElement('option');
-    option.value = scrip;
-    option.textContent = scrip;
-    select.appendChild(option);
-  });
-}
-
-// Add to watchlist
-function addToWatchlist() {
-  const select = document.getElementById('scripSelect');
-  const scrip = select.value;
-  if (!scrip) return;
-
-  if (!watchlist.includes(scrip)) {
-    watchlist.push(scrip);
-    renderWatchlist();
-  }
-  select.value = '';
-}
-
-// Render watchlist
-function renderWatchlist() {
-  const container = document.getElementById('watchlist');
-  container.innerHTML = '';
-
-  watchlist.forEach((scrip, index) => {
-    const div = document.createElement('div');
-    div.className = `flex justify-between items-center p-3 rounded-xl cursor-pointer hover:bg-zinc-800 ${currentChart && currentChart.scrip === scrip ? 'bg-zinc-800' : 'bg-zinc-950'}`;
-    div.innerHTML = `
-      <span class="font-medium">${scrip}</span>
-      <div class="flex gap-2">
-        <button onclick="showHistoricalChart('${scrip}', event)" class="text-emerald-400 hover:text-emerald-300 text-sm">View Chart</button>
-        <button onclick="removeFromWatchlist(${index}, event)" class="text-red-400 hover:text-red-300">×</button>
-      </div>
-    `;
-    container.appendChild(div);
-  });
-
-  // Save to localStorage
-  localStorage.setItem('watchlist', JSON.stringify(watchlist));
-}
-
-// Remove from watchlist
-function removeFromWatchlist(index, e) {
-  e.stopImmediatePropagation();
-  watchlist.splice(index, 1);
-  renderWatchlist();
-}
-
-// Show historical chart (Demo data for now)
-function showHistoricalChart(scrip, e) {
-  e.stopImmediatePropagation();
-
-  // Destroy previous chart
-  if (currentChart && currentChart.instance) {
-    currentChart.instance.destroy();
-  }
-
-  document.getElementById('chart-title').textContent = `${scrip} - Historical Performance`;
-
-  const ctx = document.getElementById('historicalChart');
-
-  // Sample historical data (we'll replace with real Breeze data later)
-  const labels = ['2021', '2022', '2023', '2024', '2025', '2026'];
-  const prices = [1200, 1450, 1680, 2100, 2450, 2890]; // Dummy data
-
-  const chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: `${scrip} Price`,
-        data: prices,
-        borderColor: '#00d4ff',
-        tension: 0.3,
-        fill: false
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } }
+      select.innerHTML = '<option value="">Select a scrip...</option>';
+      popularScrips.forEach(scrip => {
+        const option = document.createElement('option');
+        option.value = scrip;
+        option.textContent = scrip;
+        select.appendChild(option);
+      });
     }
-  });
 
-  currentChart = { scrip, instance: chart };
-}
+    function addToWatchlist() {
+      const select = document.getElementById('scripSelect');
+      const scrip = select.value;
+      if (!scrip || watchlist.includes(scrip)) return;
 
-// Save watchlist
-function saveWatchlist() {
-  localStorage.setItem('watchlist', JSON.stringify(watchlist));
-  alert('Watchlist saved successfully!');
-}
+      watchlist.push(scrip);
+      renderWatchlist();
+      select.value = '';
+    }
 
-// Export watchlist
-function exportWatchlist() {
-  const dataStr = JSON.stringify(watchlist, null, 2);
-  const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-  
-  const exportFileDefaultName = 'watchlist.json';
-  const linkElement = document.createElement('a');
-  linkElement.setAttribute('href', dataUri);
-  linkElement.setAttribute('download', exportFileDefaultName);
-  linkElement.click();
-}
+    function renderWatchlist() {
+      const container = document.getElementById('watchlist');
+      container.innerHTML = '';
 
-// Import watchlist
-function importWatchlist(event) {
-  const file = event.target.files[0];
-  if (!file) return;
+      watchlist.forEach((scrip, index) => {
+        const div = document.createElement('div');
+        div.className = `flex justify-between items-center p-3 rounded-xl cursor-pointer hover:bg-zinc-800`;
+        div.innerHTML = `
+          <span class="font-medium">${scrip}</span>
+          <div class="flex gap-2">
+            <button onclick="showHistoricalChart('${scrip}', event)" class="text-emerald-400 hover:text-emerald-300 text-sm">View Chart</button>
+            <button onclick="removeFromWatchlist(${index}, event)" class="text-red-400 hover:text-red-300">×</button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
 
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const imported = JSON.parse(e.target.result);
-      if (Array.isArray(imported)) {
-        watchlist = imported;
-        renderWatchlist();
-        alert('Watchlist imported successfully!');
+      localStorage.setItem('watchlist', JSON.stringify(watchlist));
+    }
+
+    function removeFromWatchlist(index, e) {
+      e.stopImmediatePropagation();
+      watchlist.splice(index, 1);
+      renderWatchlist();
+    }
+
+    function showHistoricalChart(scrip, e) {
+      e.stopImmediatePropagation();
+
+      if (currentChart && currentChart.instance) {
+        currentChart.instance.destroy();
       }
-    } catch (err) {
-      alert('Invalid file format');
+
+      document.getElementById('chart-title').textContent = `${scrip} - Historical Performance`;
+
+      const ctx = document.getElementById('historicalChart');
+
+      // Demo data (we can replace with real Breeze data later)
+      const labels = ['2021', '2022', '2023', '2024', '2025', '2026'];
+      const prices = [1200, 1450, 1680, 2100, 2450, 2890];
+
+      const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: `${scrip} Price`,
+            data: prices,
+            borderColor: '#00d4ff',
+            tension: 0.3
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+      });
+
+      currentChart = { scrip, instance: chart };
     }
-  };
-  reader.readAsText(file);
-  event.target.value = ''; // reset input
-}
 
-// Load saved watchlist on page load
-function loadSavedWatchlist() {
-  const saved = localStorage.getItem('watchlist');
-  if (saved) {
-    watchlist = JSON.parse(saved);
-    renderWatchlist();
-  }
-}
-}
+    function saveWatchlist() {
+      localStorage.setItem('watchlist', JSON.stringify(watchlist));
+      alert('Watchlist saved!');
+    }
 
-    // ==================== INITIALIZE ====================
+    function exportWatchlist() {
+      const dataStr = JSON.stringify(watchlist);
+      const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+      const link = document.createElement('a');
+      link.href = dataUri;
+      link.download = 'watchlist.json';
+      link.click();
+    }
+
+    function importWatchlist(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (Array.isArray(data)) {
+            watchlist = data;
+            renderWatchlist();
+            alert('Watchlist imported!');
+          }
+        } catch {
+          alert('Invalid file');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function loadSavedWatchlist() {
+      const saved = localStorage.getItem('watchlist');
+      if (saved) {
+        watchlist = JSON.parse(saved);
+        renderWatchlist();
+      }
+    }
+
+
+ // ==================== INITIALIZE ====================
     window.onload = function() {
       renderEquityTable();
-  renderCommodityTable();
-  createGoldSilverChart();
-  createRatioChart();
+      renderCommodityTable();
+      createGoldSilverChart();
+      createRatioChart();
 
-  // === Analytics Tab Initialization ===
-  loadScripDropdown();        // ← Add this
-  loadSavedWatchlist();       // ← Add this
+      // Analytics
+      loadScripDropdown();
+      loadSavedWatchlist();
 
-  showTab(0);
+      showTab(0);
     };
   </script>
 </body>
