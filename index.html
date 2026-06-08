@@ -178,22 +178,47 @@
     </div>
 
     <!-- ==================== ANALYTICS TAB ==================== -->
-    <div id="tab-2-content" class="hidden">
-  <div class="bg-zinc-900 rounded-2xl p-8 text-center">
-    <div class="max-w-md mx-auto">
-      <i class="fas fa-chart-line text-6xl text-zinc-700 mb-6"></i>
-      <h3 class="text-2xl font-semibold mb-3">Analytics</h3>
-      <p class="text-zinc-400 mb-6">
-        This section is currently empty.<br>
-        We can build advanced features here later (e.g., custom watchlist with charts, 
-        portfolio performance analysis, sector allocation, etc.)
-      </p>
-      <button onclick="alert('Let me know what features you want here!')" 
-              class="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-sm">
-        Suggest Features
-      </button>
+   <!-- ==================== ANALYTICS TAB ==================== -->
+<div id="tab-2-content" class="hidden">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    
+    <!-- Watchlist -->
+    <div class="lg:col-span-1 bg-zinc-900 rounded-2xl p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-semibold">My Watchlist</h3>
+        <div class="flex gap-2">
+          <button onclick="saveWatchlist()" class="text-xs px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg">Save</button>
+          <button onclick="exportWatchlist()" class="text-xs px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg">Export</button>
+          <label class="text-xs px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg cursor-pointer">
+            Import
+            <input type="file" id="importFile" accept=".json" class="hidden" onchange="importWatchlist(event)">
+          </label>
+        </div>
+      </div>
+
+      <!-- Add Scrip -->
+      <div class="flex gap-2 mb-4">
+        <select id="scripSelect" class="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-sm">
+          <!-- Options will be populated by JS -->
+        </select>
+        <button onclick="addToWatchlist()" class="bg-emerald-600 hover:bg-emerald-700 px-4 rounded-lg text-sm">Add</button>
+      </div>
+
+      <!-- Watchlist Items -->
+      <div id="watchlist" class="space-y-2 max-h-[400px] overflow-auto"></div>
     </div>
+
+    <!-- Chart Area -->
+    <div class="lg:col-span-2 bg-zinc-900 rounded-2xl p-6">
+      <div id="chart-header" class="flex justify-between items-center mb-4">
+        <h3 id="chart-title" class="text-xl font-semibold">Select a scrip to view chart</h3>
+      </div>
+      <canvas id="historicalChart" height="120"></canvas>
+      <p id="chart-note" class="text-xs text-zinc-500 mt-2">Historical data (Demo). Real data from ICICI Breeze will be integrated soon.</p>
+    </div>
+
   </div>
+</div>
 </div>
 
   </div>
@@ -414,6 +439,157 @@ function renderCommodityTable() {
     `;
     tbody.appendChild(tr);
   });
+
+  // Popular scrips list (you can expand this)
+const popularScrips = [
+  "RELIANCE", "TCS", "HDFCBANK", "INFY", "ICICIBANK", 
+  "SBIN", "BHARTIARTL", "ITC", "LT", "AXISBANK",
+  "NIFTY 50", "GOLDBEES", "SILVERBEES", "MOTNAS", "MOT100"
+];
+
+let watchlist = [];
+let currentChart = null;
+
+// Load popular scrips into dropdown
+function loadScripDropdown() {
+  const select = document.getElementById('scripSelect');
+  select.innerHTML = '<option value="">Select a scrip...</option>';
+  popularScrips.forEach(scrip => {
+    const option = document.createElement('option');
+    option.value = scrip;
+    option.textContent = scrip;
+    select.appendChild(option);
+  });
+}
+
+// Add to watchlist
+function addToWatchlist() {
+  const select = document.getElementById('scripSelect');
+  const scrip = select.value;
+  if (!scrip) return;
+
+  if (!watchlist.includes(scrip)) {
+    watchlist.push(scrip);
+    renderWatchlist();
+  }
+  select.value = '';
+}
+
+// Render watchlist
+function renderWatchlist() {
+  const container = document.getElementById('watchlist');
+  container.innerHTML = '';
+
+  watchlist.forEach((scrip, index) => {
+    const div = document.createElement('div');
+    div.className = `flex justify-between items-center p-3 rounded-xl cursor-pointer hover:bg-zinc-800 ${currentChart && currentChart.scrip === scrip ? 'bg-zinc-800' : 'bg-zinc-950'}`;
+    div.innerHTML = `
+      <span class="font-medium">${scrip}</span>
+      <div class="flex gap-2">
+        <button onclick="showHistoricalChart('${scrip}', event)" class="text-emerald-400 hover:text-emerald-300 text-sm">View Chart</button>
+        <button onclick="removeFromWatchlist(${index}, event)" class="text-red-400 hover:text-red-300">×</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+
+  // Save to localStorage
+  localStorage.setItem('watchlist', JSON.stringify(watchlist));
+}
+
+// Remove from watchlist
+function removeFromWatchlist(index, e) {
+  e.stopImmediatePropagation();
+  watchlist.splice(index, 1);
+  renderWatchlist();
+}
+
+// Show historical chart (Demo data for now)
+function showHistoricalChart(scrip, e) {
+  e.stopImmediatePropagation();
+
+  // Destroy previous chart
+  if (currentChart && currentChart.instance) {
+    currentChart.instance.destroy();
+  }
+
+  document.getElementById('chart-title').textContent = `${scrip} - Historical Performance`;
+
+  const ctx = document.getElementById('historicalChart');
+
+  // Sample historical data (we'll replace with real Breeze data later)
+  const labels = ['2021', '2022', '2023', '2024', '2025', '2026'];
+  const prices = [1200, 1450, 1680, 2100, 2450, 2890]; // Dummy data
+
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: `${scrip} Price`,
+        data: prices,
+        borderColor: '#00d4ff',
+        tension: 0.3,
+        fill: false
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  currentChart = { scrip, instance: chart };
+}
+
+// Save watchlist
+function saveWatchlist() {
+  localStorage.setItem('watchlist', JSON.stringify(watchlist));
+  alert('Watchlist saved successfully!');
+}
+
+// Export watchlist
+function exportWatchlist() {
+  const dataStr = JSON.stringify(watchlist, null, 2);
+  const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+  
+  const exportFileDefaultName = 'watchlist.json';
+  const linkElement = document.createElement('a');
+  linkElement.setAttribute('href', dataUri);
+  linkElement.setAttribute('download', exportFileDefaultName);
+  linkElement.click();
+}
+
+// Import watchlist
+function importWatchlist(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (Array.isArray(imported)) {
+        watchlist = imported;
+        renderWatchlist();
+        alert('Watchlist imported successfully!');
+      }
+    } catch (err) {
+      alert('Invalid file format');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = ''; // reset input
+}
+
+// Load saved watchlist on page load
+function loadSavedWatchlist() {
+  const saved = localStorage.getItem('watchlist');
+  if (saved) {
+    watchlist = JSON.parse(saved);
+    renderWatchlist();
+  }
+}
 }
 
     // ==================== INITIALIZE ====================
@@ -422,6 +598,8 @@ function renderCommodityTable() {
       renderCommodityTable();          
       createGoldSilverChart();
       createRatioChart();
+      loadScripDropdown();
+      loadSavedWatchlist();
       showTab(0);
     };
   </script>
