@@ -3,12 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MarketPulse • India</title>
+  <title>MarketPulse India • Yahoo Finance</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   <style>
-    :root { --bg: #0a0a0a; --card: #161625; --text: #e0e0e0; --primary: #00d4ff; --accent: #ff00aa; }
-    [data-theme="light"] { --bg: #f8fafc; --card: #ffffff; --text: #1e2937; --primary: #0066cc; }
+    :root {
+      --bg: #0a0a0a;
+      --card: #161625;
+      --text: #e0e0e0;
+      --primary: #00d4ff;
+      --accent: #ff00aa;
+    }
+    [data-theme="light"] {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e2937;
+      --primary: #0066cc;
+    }
 
     body { font-family: system-ui, sans-serif; margin:0; background: var(--bg); color: var(--text); }
     .container { max-width: 1480px; margin: 0 auto; padding: 20px; }
@@ -23,7 +34,6 @@
     th { background: #1e2937; }
     .positive { color: #22c55e; }
     .negative { color: #ef4444; }
-    .error { color: #f87171; font-size: 0.9rem; }
   </style>
 </head>
 <body>
@@ -31,85 +41,87 @@
     <header>
       <button onclick="toggleTheme()" class="theme-toggle" id="theme-btn"><i class="fas fa-moon"></i></button>
       <h1>MarketPulse India</h1>
-      <p id="last-updated">Fetching data from Alpha Vantage...</p>
+      <p id="last-updated">Data from Yahoo Finance • Updated Live</p>
     </header>
 
     <div class="grid" id="live-grid"></div>
 
     <div class="card">
-      <h3>📊 Historical Yearly Returns</h3>
+      <h3>📊 Historical Yearly Returns (Last 10 Years)</h3>
       <div id="yearly-returns" style="overflow-x:auto;"></div>
     </div>
   </div>
 
   <script>
-    const API_KEY = "LJVKMQLYR18SFN9Q";
-
     const assets = [
-      { name: "NIFTY 50", symbol: "NIFTY" },
-      { name: "GOLDBEES", symbol: "GOLDBEES" }
+      { name: "NIFTY 50", ticker: "^NSEI" },
+      { name: "NIFTY Midcap 100", ticker: "^NSEMDCP50" },
+      { name: "GOLDBEES", ticker: "GOLDBEES.NS" },
+      { name: "SILVERBEES", ticker: "SILVERBEES.NS" }
     ];
 
-    async function fetchWithFallback(symbol) {
+    async function fetchYahooData(ticker) {
       try {
-        const url = `https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY&symbol=${symbol}&apikey=${API_KEY}`;
+        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=10y&interval=1mo`;
         const res = await fetch(url);
         const data = await res.json();
-
-        if (data["Monthly Time Series"]) {
-          return data["Monthly Time Series"];
-        }
-      } catch(e) {}
-      return null;
+        return data.chart.result[0];
+      } catch(e) {
+        console.error(e);
+        return null;
+      }
     }
 
     async function renderYearlyReturns() {
       const container = document.getElementById('yearly-returns');
       let html = `<table><thead><tr><th>Year</th>`;
 
-      assets.forEach(asset => html += `<th>${asset.name}</th>`);
+      assets.forEach(a => html += `<th>${a.name}</th>`);
       html += `</tr></thead><tbody>`;
 
-      const allData = {};
+      const yearlyData = {};
 
       for (let asset of assets) {
-        const monthlyData = await fetchWithFallback(asset.symbol);
-        if (monthlyData) {
-          const yearly = {};
-          Object.keys(monthlyData).forEach(date => {
-            const year = date.substring(0, 4);
-            if (!yearly[year]) yearly[year] = { first: null, last: null };
-            const val = parseFloat(monthlyData[date]["4. close"]);
-            if (!yearly[year].first) yearly[year].first = val;
-            yearly[year].last = val;
+        const chartData = await fetchYahooData(asset.ticker);
+        if (chartData) {
+          const timestamps = chartData.timestamp;
+          const closes = chartData.indicators.quote[0].close;
+          const yearMap = {};
+
+          timestamps.forEach((ts, i) => {
+            const date = new Date(ts * 1000);
+            const year = date.getFullYear();
+            if (!yearMap[year]) yearMap[year] = { first: null, last: null };
+            if (!yearMap[year].first) yearMap[year].first = closes[i];
+            yearMap[year].last = closes[i];
           });
 
-          allData[asset.name] = yearly;
+          yearlyData[asset.name] = yearMap;
         }
       }
 
       // Get all years
-      const years = new Set();
-      Object.values(allData).forEach(data => Object.keys(data).forEach(y => years.add(y)));
-      const sortedYears = Array.from(years).sort().reverse();
+      const allYears = new Set();
+      Object.values(yearlyData).forEach(data => Object.keys(data).forEach(y => allYears.add(y)));
+      const sortedYears = Array.from(allYears).sort().reverse();
 
       sortedYears.forEach(year => {
         html += `<tr><td><strong>${year}</strong></td>`;
         assets.forEach(asset => {
-          const data = allData[asset.name];
+          const data = yearlyData[asset.name];
           if (data && data[year]) {
             const ret = ((data[year].last - data[year].first) / data[year].first * 100).toFixed(1);
             const cls = ret > 0 ? 'positive' : 'negative';
             html += `<td class="${cls}">${ret}%</td>`;
           } else {
-            html += `<td class="error">—</td>`;
+            html += `<td>—</td>`;
           }
         });
         html += `</tr>`;
       });
 
       html += `</tbody></table>`;
-      container.innerHTML = html || '<p class="error">No historical data available at the moment.</p>';
+      container.innerHTML = html;
     }
 
     function toggleTheme() {
@@ -120,7 +132,6 @@
 
     window.onload = () => {
       renderYearlyReturns();
-      document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleTimeString('en-IN')}`;
     };
   </script>
 </body>
