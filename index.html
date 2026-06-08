@@ -339,7 +339,7 @@
   const sessionToken = document.getElementById('sessionToken').value.trim();
 
   if (!apiKey || !secretKey || !sessionToken) {
-    alert("Please enter all credentials");
+    alert("Please enter API Key, Secret Key and Session Token");
     return;
   }
 
@@ -373,43 +373,32 @@
     }
 
     result.data.forEach(item => {
-      // Correct field mapping from get_portfolio_holdings()
-      const symbol     = item.stock_code || "N/A";
-      const qty        = parseFloat(item.quantity) || 0;
-      const avgPrice   = parseFloat(item.average_price) || 0;
-      const ltp        = parseFloat(item.current_market_price) || 0;
-      const value      = qty * ltp;
-      
-      // Calculate Unrealized P&L %
-      let pnlPercent = "0.00";
-      if (avgPrice > 0 && ltp > 0) {
-        pnlPercent = ((ltp - avgPrice) / avgPrice * 100).toFixed(2);
-      }
+      const symbol   = item.stock_code || "N/A";
+      const qty      = parseFloat(item.quantity) || 0;
+      const avgPrice = parseFloat(item.average_price) || 0;
+      const ltp      = parseFloat(item.current_market_price) || 0;
+      const value    = qty * ltp;
+      const pnl      = (avgPrice > 0) ? ((ltp - avgPrice) / avgPrice * 100).toFixed(2) : "0.00";
 
       const row = document.createElement("tr");
-      row.className = "border-b border-zinc-800 hover:bg-zinc-900";
+      row.className = "border-b border-zinc-800";
       row.innerHTML = `
         <td class="py-3 font-medium">${symbol}</td>
         <td>${qty}</td>
         <td>₹${avgPrice.toFixed(2)}</td>
         <td>₹${ltp.toFixed(2)}</td>
         <td>₹${value.toFixed(2)}</td>
-        <td class="${pnlPercent >= 0 ? 'text-emerald-400' : 'text-red-400'} font-medium">${pnlPercent}%</td>
+        <td class="${pnl >= 0 ? 'text-emerald-400' : 'text-red-400'} font-medium">${pnl}%</td>
       `;
       tbody.appendChild(row);
     });
 
   } catch (error) {
     console.error(error);
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="6" class="py-6 text-center text-red-400">
-          ${error.message}
-        </td>
-      </tr>
-    `;
+    tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-red-400">${error.message}</td></tr>`;
   }
 }
+
 
 function hideRawResponse() {
   document.getElementById('raw-response').classList.add('hidden');
@@ -450,9 +439,16 @@ const popularScrips = [
 let watchlist = [];
 let currentChart = null;
 
-// Load popular scrips into dropdown
 function loadScripDropdown() {
   const select = document.getElementById('scripSelect');
+  if (!select) return;
+
+  const popularScrips = [
+    "RELIANCE", "TCS", "HDFCBANK", "INFY", "ICICIBANK", 
+    "SBIN", "BHARTIARTL", "ITC", "LT", "AXISBANK",
+    "NIFTY 50", "GOLDBEES", "SILVERBEES", "MOTNAS", "MOT100"
+  ];
+
   select.innerHTML = '<option value="">Select a scrip...</option>';
   popularScrips.forEach(scrip => {
     const option = document.createElement('option');
@@ -595,12 +591,15 @@ function loadSavedWatchlist() {
     // ==================== INITIALIZE ====================
     window.onload = function() {
       renderEquityTable();
-      renderCommodityTable();          
-      createGoldSilverChart();
-      createRatioChart();
-      loadScripDropdown();
-      loadSavedWatchlist();
-      showTab(0);
+  renderCommodityTable();
+  createGoldSilverChart();
+  createRatioChart();
+
+  // === Analytics Tab Initialization ===
+  loadScripDropdown();        // ← Add this
+  loadSavedWatchlist();       // ← Add this
+
+  showTab(0);
     };
   </script>
 </body>
