@@ -320,11 +320,7 @@
   }
 
   const tbody = document.getElementById('holdings-table');
-  const rawContainer = document.getElementById('raw-response');
-  const rawJson = document.getElementById('raw-json');
-
   tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-zinc-400">Fetching from ICICI Direct...</td></tr>`;
-  if (rawContainer) rawContainer.classList.add('hidden');
 
   try {
     const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
@@ -341,12 +337,6 @@
 
     const result = await response.json();
 
-    // Show raw response (for debugging - you can remove later)
-    if (rawContainer && rawJson) {
-      rawContainer.classList.remove('hidden');
-      rawJson.textContent = JSON.stringify(result, null, 2);
-    }
-
     if (!result.success || !result.data) {
       throw new Error(result.detail || "Failed to fetch holdings");
     }
@@ -359,25 +349,28 @@
     }
 
     result.data.forEach(item => {
-      // Correct mapping based on actual API response
-      const symbol = item.stock_code || "N/A";
-      const qty = parseInt(item.quantity) || 0;
-
-      // These fields are not available from get_demat_holdings()
-      const avgPrice = "N/A";
-      const ltp = "N/A";
-      const value = "N/A";
-      const pnl = "N/A";
+      // Correct field mapping from get_portfolio_holdings()
+      const symbol     = item.stock_code || "N/A";
+      const qty        = parseFloat(item.quantity) || 0;
+      const avgPrice   = parseFloat(item.average_price) || 0;
+      const ltp        = parseFloat(item.current_market_price) || 0;
+      const value      = qty * ltp;
+      
+      // Calculate Unrealized P&L %
+      let pnlPercent = "0.00";
+      if (avgPrice > 0 && ltp > 0) {
+        pnlPercent = ((ltp - avgPrice) / avgPrice * 100).toFixed(2);
+      }
 
       const row = document.createElement("tr");
       row.className = "border-b border-zinc-800 hover:bg-zinc-900";
       row.innerHTML = `
         <td class="py-3 font-medium">${symbol}</td>
         <td>${qty}</td>
-        <td class="text-zinc-500">${avgPrice}</td>
-        <td class="text-zinc-500">${ltp}</td>
-        <td class="text-zinc-500">${value}</td>
-        <td class="text-zinc-500">${pnl}</td>
+        <td>₹${avgPrice.toFixed(2)}</td>
+        <td>₹${ltp.toFixed(2)}</td>
+        <td>₹${value.toFixed(2)}</td>
+        <td class="${pnlPercent >= 0 ? 'text-emerald-400' : 'text-red-400'} font-medium">${pnlPercent}%</td>
       `;
       tbody.appendChild(row);
     });
