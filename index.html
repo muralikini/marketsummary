@@ -324,7 +324,7 @@
   const rawJson = document.getElementById('raw-json');
 
   tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-zinc-400">Fetching from ICICI Direct...</td></tr>`;
-  rawContainer.classList.add('hidden');
+  if (rawContainer) rawContainer.classList.add('hidden');
 
   try {
     const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
@@ -341,15 +341,16 @@
 
     const result = await response.json();
 
-    // Show raw response for debugging
-    rawContainer.classList.remove('hidden');
-    rawJson.textContent = JSON.stringify(result, null, 2);
-
-    if (!result.success || !result.data) {
-      throw new Error(result.detail || "Invalid response from backend");
+    // Show raw response (for debugging - you can remove later)
+    if (rawContainer && rawJson) {
+      rawContainer.classList.remove('hidden');
+      rawJson.textContent = JSON.stringify(result, null, 2);
     }
 
-    // Render table
+    if (!result.success || !result.data) {
+      throw new Error(result.detail || "Failed to fetch holdings");
+    }
+
     tbody.innerHTML = "";
 
     if (result.data.length === 0) {
@@ -358,30 +359,38 @@
     }
 
     result.data.forEach(item => {
-      // Try multiple possible field names
-      const symbol   = item.stock_code || item.symbol || item.SYMBOL || "N/A";
-      const qty      = parseFloat(item.quantity || item.qty || item.QUANTITY || 0);
-      const avgPrice = parseFloat(item.average_price || item.avg_price || item.AVERAGE_PRICE || 0);
-      const ltp      = parseFloat(item.current_market_price || item.ltp || item.LTP || item.CURRENT_MARKET_PRICE || 0);
-      const value    = qty * ltp;
-      const pnl      = avgPrice > 0 ? ((ltp - avgPrice) / avgPrice * 100).toFixed(2) : "0.00";
+      // Correct mapping based on actual API response
+      const symbol = item.stock_code || "N/A";
+      const qty = parseInt(item.quantity) || 0;
+
+      // These fields are not available from get_demat_holdings()
+      const avgPrice = "N/A";
+      const ltp = "N/A";
+      const value = "N/A";
+      const pnl = "N/A";
 
       const row = document.createElement("tr");
-      row.className = "border-b border-zinc-800";
+      row.className = "border-b border-zinc-800 hover:bg-zinc-900";
       row.innerHTML = `
         <td class="py-3 font-medium">${symbol}</td>
         <td>${qty}</td>
-        <td>₹${avgPrice.toFixed(2)}</td>
-        <td>₹${ltp.toFixed(2)}</td>
-        <td>₹${value.toFixed(2)}</td>
-        <td class="${pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}">${pnl}%</td>
+        <td class="text-zinc-500">${avgPrice}</td>
+        <td class="text-zinc-500">${ltp}</td>
+        <td class="text-zinc-500">${value}</td>
+        <td class="text-zinc-500">${pnl}</td>
       `;
       tbody.appendChild(row);
     });
 
   } catch (error) {
     console.error(error);
-    tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-red-400">${error.message}</td></tr>`;
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="py-6 text-center text-red-400">
+          ${error.message}
+        </td>
+      </tr>
+    `;
   }
 }
 
