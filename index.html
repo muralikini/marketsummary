@@ -88,6 +88,31 @@
           <canvas id="ratioChart" height="120"></canvas>
         </div>
       </div>
+      <!-- Essential Commodities / Inflation Data (Moved from Analytics) -->
+        <div class="bg-zinc-900 rounded-2xl p-6 mt-8">
+        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
+            <i class="fas fa-shopping-basket text-orange-400"></i>
+            Essential Commodities Price Trend (₹)
+        </h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-zinc-700 text-zinc-400">
+                <th class="text-left py-3">Year</th>
+                <th>Rice (₹/kg)</th>
+                <th>Wheat (₹/kg)</th>
+                <th>Milk (₹/L)</th>
+                <th>Petrol (₹/L)</th>
+                <th>Diesel (₹/L)</th>
+                <th>LPG (₹)</th>
+                </tr>
+            </thead>
+            <tbody id="commodity-table"></tbody>
+            </table>
+        </div>
+        <p class="text-xs text-zinc-500 mt-3">Data from your Excel sheet • Daily Needs Price Chart</p>
+        </div>
+            
 
     </div>
 
@@ -100,17 +125,17 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div>
             <label class="text-sm text-zinc-400">API Key</label>
-            <input id="apiKey" type="text" value="59E06m90zx8750d33n1g9U9311786E0I" 
+            <input id="apiKey" type="text" value="59E06m90zx8750d33n1g9U9311786E01" 
                    class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm">
           </div>
           <div>
             <label class="text-sm text-zinc-400">Secret Key</label>
-            <input id="secretKey" type="password" value="2km$2C35`%218g7869^wRP28854890Y6" 
+            <input id="secretKey" type="password" value="2km$2C35*%218g7869^wRP28854890Y6" 
                    class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm">
           </div>
           <div>
             <label class="text-sm text-zinc-400">Session Token</label>
-            <input id="sessionToken" type="text" placeholder="55885931" 
+            <input id="sessionToken" type="text" placeholder="Paste your Session Token here" 
                    class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm">
           </div>
         </div>
@@ -154,48 +179,22 @@
 
     <!-- ==================== ANALYTICS TAB ==================== -->
     <div id="tab-2-content" class="hidden">
-      <div class="bg-zinc-900 rounded-2xl p-6 mb-6">
-        <h3 class="text-2xl font-semibold mb-4">Watchlist</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="bg-zinc-800 p-4 rounded-xl">
-            <div class="flex justify-between items-start">
-              <div>
-                <p class="font-semibold">NIFTY 50</p>
-                <p class="text-2xl font-bold">23,478</p>
-                <p class="text-emerald-400 text-sm">+0.92%</p>
-              </div>
-              <i class="fas fa-chart-line text-3xl text-zinc-600 mt-1"></i>
-            </div>
-          </div>
-          <div class="bg-zinc-800 p-4 rounded-xl">
-            <div class="flex justify-between items-start">
-              <div>
-                <p class="font-semibold">GOLDBEES</p>
-                <p class="text-2xl font-bold">₹129.35</p>
-                <p class="text-emerald-400 text-sm">+1.45%</p>
-              </div>
-              <i class="fas fa-chart-line text-3xl text-zinc-600 mt-1"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Daily Needs / Inflation Snapshot -->
-      <div class="bg-zinc-900 rounded-2xl p-6">
-        <h3 class="text-xl font-semibold mb-4">Essential Commodities Price Trend (₹)</h3>
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="border-b border-zinc-700 text-zinc-400">
-                <th class="text-left py-3">Year</th>
-                <th>Rice</th><th>Wheat</th><th>Milk</th><th>Petrol</th><th>Diesel</th><th>LPG</th>
-              </tr>
-            </thead>
-            <tbody id="commodity-table"></tbody>
-          </table>
-        </div>
-      </div>
+  <div class="bg-zinc-900 rounded-2xl p-8 text-center">
+    <div class="max-w-md mx-auto">
+      <i class="fas fa-chart-line text-6xl text-zinc-700 mb-6"></i>
+      <h3 class="text-2xl font-semibold mb-3">Analytics</h3>
+      <p class="text-zinc-400 mb-6">
+        This section is currently empty.<br>
+        We can build advanced features here later (e.g., custom watchlist with charts, 
+        portfolio performance analysis, sector allocation, etc.)
+      </p>
+      <button onclick="alert('Let me know what features you want here!')" 
+              class="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-sm">
+        Suggest Features
+      </button>
     </div>
+  </div>
+</div>
 
   </div>
 
@@ -391,10 +390,36 @@ function hideRawResponse() {
   document.getElementById('raw-response').classList.add('hidden');
 }
 
+function renderCommodityTable() {
+  const tbody = document.getElementById('commodity-table');
+  const commodityData = [
+    {year:2026, rice:43, wheat:31, milk:60, petrol:102, diesel:98, lpg:913},
+    {year:2025, rice:42, wheat:31, milk:59, petrol:105, diesel:101, lpg:870},
+    {year:2024, rice:41, wheat:30.5, milk:58, petrol:100, diesel:96, lpg:803},
+    {year:2020, rice:37, wheat:28, milk:52, petrol:80, diesel:76, lpg:780},
+  ];
+
+  tbody.innerHTML = '';
+  commodityData.forEach(row => {
+    const tr = document.createElement('tr');
+    tr.className = 'border-b border-zinc-800';
+    tr.innerHTML = `
+      <td class="py-3 font-medium">${row.year}</td>
+      <td>₹${row.rice}</td>
+      <td>₹${row.wheat}</td>
+      <td>₹${row.milk}</td>
+      <td>₹${row.petrol}</td>
+      <td>₹${row.diesel}</td>
+      <td>₹${row.lpg}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
     // ==================== INITIALIZE ====================
     window.onload = function() {
       renderEquityTable();
-      renderCommodityTable();
+      renderCommodityTable();          
       createGoldSilverChart();
       createRatioChart();
       showTab(0);
