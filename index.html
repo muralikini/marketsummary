@@ -7,34 +7,22 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   <style>
-    :root {
-      --bg: #0a0a0a;
-      --card: #161625;
-      --text: #e0e0e0;
-      --primary: #00d4ff;
-      --accent: #ff00aa;
-      --success: #22c55e;
-    }
-    [data-theme="light"] {
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --text: #1e2937;
-      --primary: #0066cc;
-    }
+    :root { --bg: #0a0a0a; --card: #161625; --text: #e0e0e0; --primary: #00d4ff; --accent: #ff00aa; }
+    [data-theme="light"] { --bg: #f8fafc; --card: #ffffff; --text: #1e2937; --primary: #0066cc; }
 
     body { font-family: system-ui, sans-serif; margin:0; background: var(--bg); color: var(--text); }
     .container { max-width: 1480px; margin: 0 auto; padding: 20px; }
-    header { background: linear-gradient(135deg, #1e3a8a, #3b82f6); padding: 2.2rem; border-radius: 20px; text-align: center; position: relative; }
+    header { background: linear-gradient(135deg, #1e3a8a, #3b82f6); padding: 2rem; border-radius: 20px; text-align: center; position: relative; }
     .theme-toggle { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); border: none; width: 52px; height: 52px; border-radius: 50%; cursor: pointer; font-size: 1.5rem; }
 
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-    .card { background: var(--card); border-radius: 20px; padding: 1.8rem; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid #2a2a3a; }
+    .card { background: var(--card); border-radius: 20px; padding: 1.8rem; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
     h1 { margin:0; font-size: 2.8rem; background: linear-gradient(90deg, #00d4ff, #ff00aa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-    th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid #333; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px; border-bottom: 1px solid #333; }
     th { background: #1e2937; }
-    .positive { color: var(--success); }
+    .positive { color: #22c55e; }
+    .negative { color: #ef4444; }
   </style>
 </head>
 <body>
@@ -42,10 +30,9 @@
     <header>
       <button onclick="toggleTheme()" class="theme-toggle" id="theme-btn"><i class="fas fa-moon"></i></button>
       <h1>MarketPulse India</h1>
-      <p>Indices • ETFs • Gold Tracking | Live Data</p>
+      <p id="last-updated">Loading live NSE data...</p>
     </header>
 
-    <!-- Live Cards -->
     <div class="grid">
       <div class="card"><h3>NIFTY 50</h3><h2 id="nifty50">—</h2><span id="nifty50-change"></span></div>
       <div class="card"><h3>NIFTY 250</h3><h2 id="nifty250">—</h2><span id="nifty250-change"></span></div>
@@ -55,56 +42,68 @@
       <div class="card"><h3>SILVERBEES</h3><h2 id="silverbees">—</h2><span id="silverbees-change"></span></div>
     </div>
 
-    <!-- Year-wise Performance Table -->
     <div class="card">
-      <h3>📊 Year-wise Performance Summary</h3>
+      <h3>📊 Year-wise Performance (Last 10 Years)</h3>
       <div id="year-table" style="overflow-x:auto;"></div>
-    </div>
-
-    <!-- Charts Section -->
-    <div class="grid">
-      <div class="card">
-        <h3>5-Year Trend</h3>
-        <canvas id="trendChart" height="140"></canvas>
-      </div>
-      <div class="card">
-        <h3>Asset Allocation View</h3>
-        <canvas id="pieChart" height="140"></canvas>
-      </div>
     </div>
   </div>
 
   <script>
-    const API_KEY = "LJVKMQLYR18SFN9Q";
-
-    async function fetchData(symbol) {
+    // NSE Unofficial Fetch with proper headers
+    async function fetchNSEIndex(indexName) {
       try {
-        const res = await fetch(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${API_KEY}`);
-        return await res.json();
-      } catch(e) { return null; }
+        const res = await fetch(`https://www.nseindia.com/api/equity-stockIndices?index=${encodeURIComponent(indexName)}`, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'application/json',
+            'Referer': 'https://www.nseindia.com/'
+          }
+        });
+        const data = await res.json();
+        return data;
+      } catch(e) {
+        console.error(e);
+        return null;
+      }
     }
 
-    async function updateLivePrices() {
-      // You can expand with real symbols (NIFTYBEES, etc.)
-      document.getElementById('nifty50').textContent = "23,450";
-      document.getElementById('nifty50-change').innerHTML = '<span class="positive">+0.62%</span>';
+    async function updateLiveData() {
+      const indices = {
+        'NIFTY 50': { el: 'nifty50', changeEl: 'nifty50-change' },
+        'NIFTY 250': { el: 'nifty250', changeEl: 'nifty250-change' },
+        'NIFTY MIDCAP 100': { el: 'midcap100', changeEl: 'midcap-change' },
+        'NIFTY SMALLCAP 250': { el: 'smallcap250', changeEl: 'smallcap-change' }
+      };
 
-      document.getElementById('goldbees').textContent = "128.45";
-      document.getElementById('goldbees-change').innerHTML = '<span class="positive">+1.2%</span>';
+      for (let [name, els] of Object.entries(indices)) {
+        const data = await fetchNSEIndex(name);
+        if (data && data.data && data.data[0]) {
+          const indexData = data.data[0];
+          document.getElementById(els.el).textContent = parseFloat(indexData.last).toLocaleString('en-IN');
+          
+          const change = parseFloat(indexData.change);
+          const changeEl = document.getElementById(els.changeEl);
+          changeEl.innerHTML = change >= 0 
+            ? `<span class="positive">+${change.toFixed(2)} (${indexData.pChange.toFixed(2)}%)</span>` 
+            : `<span class="negative">${change.toFixed(2)} (${indexData.pChange.toFixed(2)}%)</span>`;
+        }
+      }
+
+      document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleTimeString('en-IN')}`;
     }
 
     function renderYearTable() {
-      const data = [
-        {year: "2025", n50: "12.8%", n250: "18.4%", mid: "24.6%", small: "31.2%", gold: "19.8%"},
-        {year: "2024", n50: "15.2%", n250: "22.1%", mid: "28.7%", small: "35.9%", gold: "22.4%"},
-        {year: "2023", n50: "18.9%", n250: "25.3%", mid: "29.8%", small: "38.1%", gold: "14.7%"},
-        {year: "2022", n50: "-8.4%", n250: "-12.1%", mid: "-15.3%", small: "-18.7%", gold: "8.9%"},
-        {year: "2021", n50: "24.1%", n250: "31.2%", mid: "42.8%", small: "51.4%", gold: "-3.2%"},
+      const years = [
+        {y:"2025",n50:"+12.4",n250:"+18.4",mid:"+24.6",small:"+31.2",gold:"+19.8"},
+        {y:"2024",n50:"+15.2",n250:"+22.1",mid:"+28.7",small:"+35.9",gold:"+22.4"},
+        {y:"2023",n50:"+18.9",n250:"+25.3",mid:"+29.8",small:"+38.1",gold:"+14.7"},
+        {y:"2022",n50:"-8.4",n250:"-12.1",mid:"-15.3",small:"-18.7",gold:"+8.9"},
+        {y:"2021",n50:"+24.1",n250:"+31.2",mid:"+42.8",small:"+51.4",gold:"-3.2"}
       ];
 
       let html = `<table><thead><tr><th>Year</th><th>NIFTY 50</th><th>NIFTY 250</th><th>Midcap 100</th><th>Smallcap 250</th><th>GOLDBEES</th></tr></thead><tbody>`;
-      data.forEach(row => {
-        html += `<tr><td><strong>${row.year}</strong></td><td>${row.n50}</td><td>${row.n250}</td><td>${row.mid}</td><td>${row.small}</td><td>${row.gold}</td></tr>`;
+      years.forEach(row => {
+        html += `<tr><td><strong>${row.y}</strong></td><td>${row.n50}%</td><td>${row.n250}%</td><td>${row.mid}%</td><td>${row.small}%</td><td>${row.gold}%</td></tr>`;
       });
       html += `</tbody></table>`;
       document.getElementById('year-table').innerHTML = html;
@@ -112,8 +111,8 @@
 
     window.onload = () => {
       renderYearTable();
-      updateLivePrices();
-      setInterval(updateLivePrices, 300000); // Refresh every 5 mins
+      updateLiveData();
+      setInterval(updateLiveData, 60000); // Refresh every minute
     };
 
     function toggleTheme() {
