@@ -100,12 +100,12 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div>
             <label class="text-sm text-zinc-400">API Key</label>
-            <input id="apiKey" type="text" value="59E06m90zx8750d33n1g9U9311786E0I" 
+            <input id="apiKey" type="text" value="59E06m90zx8750d33n1g9U9311786E01" 
                    class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm">
           </div>
           <div>
             <label class="text-sm text-zinc-400">Secret Key</label>
-            <input id="secretKey" type="password" value="2km$2C35`%218g7869^wRP28854890Y6" 
+            <input id="secretKey" type="password" value="2km$2C35*%218g7869^wRP28854890Y6" 
                    class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm">
           </div>
           <div>
@@ -140,6 +140,16 @@
         </div>
         <p class="text-xs text-amber-400 mt-4">Note: Real integration requires a backend for security. Current version shows demo + structure.</p>
       </div>
+    </div>
+
+    <div id="raw-response" class="mt-6 hidden">
+    <div class="flex justify-between items-center mb-2">
+        <h4 class="font-semibold text-amber-400">Raw Response from ICICI Direct (Debug)</h4>
+        <button onclick="hideRawResponse()" 
+                class="text-xs px-3 py-1 bg-zinc-700 hover:bg-zinc-600 rounded">Hide</button>
+    </div>
+    <pre id="raw-json" 
+        class="bg-zinc-950 p-4 rounded-xl text-xs overflow-auto max-h-96 border border-zinc-700"></pre>
     </div>
 
     <!-- ==================== ANALYTICS TAB ==================== -->
@@ -310,7 +320,11 @@
   }
 
   const tbody = document.getElementById('holdings-table');
+  const rawContainer = document.getElementById('raw-response');
+  const rawJson = document.getElementById('raw-json');
+
   tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-zinc-400">Fetching from ICICI Direct...</td></tr>`;
+  rawContainer.classList.add('hidden');
 
   try {
     const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
@@ -325,17 +339,17 @@
       })
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || `HTTP Error: ${response.status}`);
-    }
-
     const result = await response.json();
 
+    // Show raw response for debugging
+    rawContainer.classList.remove('hidden');
+    rawJson.textContent = JSON.stringify(result, null, 2);
+
     if (!result.success || !result.data) {
-      throw new Error(result.detail || "No data received from ICICI Direct");
+      throw new Error(result.detail || "Invalid response from backend");
     }
 
+    // Render table
     tbody.innerHTML = "";
 
     if (result.data.length === 0) {
@@ -344,37 +358,35 @@
     }
 
     result.data.forEach(item => {
-      // ==================== IMPROVED FIELD MAPPING ====================
-      const symbol     = item.stock_code || item.symbol || item.SYMBOL || "N/A";
-      const qty        = parseFloat(item.quantity || item.qty || item.QUANTITY || 0);
-      const avgPrice   = parseFloat(item.average_price || item.avg_price || item.AVERAGE_PRICE || 0);
-      const ltp        = parseFloat(item.current_market_price || item.ltp || item.LTP || item.CURRENT_MARKET_PRICE || 0);
-      const value      = qty * ltp;
-      const pnlPercent = avgPrice > 0 ? ((ltp - avgPrice) / avgPrice * 100).toFixed(2) : "0.00";
+      // Try multiple possible field names
+      const symbol   = item.stock_code || item.symbol || item.SYMBOL || "N/A";
+      const qty      = parseFloat(item.quantity || item.qty || item.QUANTITY || 0);
+      const avgPrice = parseFloat(item.average_price || item.avg_price || item.AVERAGE_PRICE || 0);
+      const ltp      = parseFloat(item.current_market_price || item.ltp || item.LTP || item.CURRENT_MARKET_PRICE || 0);
+      const value    = qty * ltp;
+      const pnl      = avgPrice > 0 ? ((ltp - avgPrice) / avgPrice * 100).toFixed(2) : "0.00";
 
       const row = document.createElement("tr");
-      row.className = "border-b border-zinc-800 hover:bg-zinc-900";
+      row.className = "border-b border-zinc-800";
       row.innerHTML = `
         <td class="py-3 font-medium">${symbol}</td>
         <td>${qty}</td>
         <td>₹${avgPrice.toFixed(2)}</td>
         <td>₹${ltp.toFixed(2)}</td>
         <td>₹${value.toFixed(2)}</td>
-        <td class="${pnlPercent >= 0 ? 'text-emerald-400' : 'text-red-400'} font-medium">${pnlPercent}%</td>
+        <td class="${pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}">${pnl}%</td>
       `;
       tbody.appendChild(row);
     });
 
   } catch (error) {
-    console.error("Error fetching holdings:", error);
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="6" class="py-6 text-center text-red-400">
-          ${error.message}
-        </td>
-      </tr>
-    `;
+    console.error(error);
+    tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-red-400">${error.message}</td></tr>`;
   }
+}
+
+function hideRawResponse() {
+  document.getElementById('raw-response').classList.add('hidden');
 }
 
     // ==================== INITIALIZE ====================
