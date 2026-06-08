@@ -213,7 +213,7 @@
       <div id="chart-header" class="flex justify-between items-center mb-4">
         <h3 id="chart-title" class="text-xl font-semibold">Select a scrip to view chart</h3>
       </div>
-      <canvas id="historicalChart" style="max-height: 320px;"></canvas>
+      <canvas id="historicalChart" height="120"></canvas>
       <p id="chart-note" class="text-xs text-zinc-500 mt-2">Historical data (Demo). Real data from ICICI Breeze will be integrated soon.</p>
     </div>
 
@@ -479,81 +479,60 @@ function hideRawResponse() {
     }
 
     // Global variable to store current chart
-llet historicalChartInstance = null;
+let historicalChartInstance = null;
 
-async function showHistoricalChart(scrip, e) {
+function showHistoricalChart(scrip, e) {
   e.stopImmediatePropagation();
 
   const ctx = document.getElementById('historicalChart');
-  const title = document.getElementById('chart-title');
 
-  // Destroy old chart
+  // Destroy previous chart if it exists
   if (historicalChartInstance) {
     historicalChartInstance.destroy();
     historicalChartInstance = null;
   }
 
-  title.textContent = `${scrip} - Historical Performance`;
+  // Update title
+  document.getElementById('chart-title').textContent = `${scrip} - Historical Performance (Demo)`;
 
-  // Show loading
-  ctx.style.opacity = "0.5";
+  // Demo data (we'll replace this with real Breeze data later)
+  const labels = ['2021', '2022', '2023', '2024', '2025', '2026'];
+  
+  // You can make this dynamic later based on scrip
+  const prices = [1200, 1450, 1680, 2100, 2450, 2890];
 
-  try {
-    const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
-
-    // Get last 5 years
-    const toDate = new Date().toISOString().split('T')[0] + "T06:00:00.000Z";
-    const fromDate = new Date(new Date().setFullYear(new Date().getFullYear() - 5))
-                      .toISOString().split('T')[0] + "T06:00:00.000Z";
-
-    const response = await fetch(`${BACKEND_URL}/api/historical`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        api_key: document.getElementById('apiKey').value.trim(),
-        secret_key: document.getElementById('secretKey').value.trim(),
-        session_token: document.getElementById('sessionToken').value.trim(),
-        stock_code: scrip,
-        from_date: fromDate,
-        to_date: toDate,
-        interval: "1day"
-      })
-    });
-
-    const result = await response.json();
-
-    if (!result.success || !result.data || result.data.length === 0) {
-      throw new Error("No historical data available for this scrip");
-    }
-
-    // Prepare data for chart
-    const labels = result.data.map(item => item.datetime.split('T')[0]);
-    const prices = result.data.map(item => parseFloat(item.close));
-
-    // Create chart
-    historicalChartInstance = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: `${scrip} Close Price`,
-          data: prices,
-          borderColor: '#00d4ff',
-          tension: 0.1
-        }]
+  // Create new chart
+  historicalChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: `${scrip} Price`,
+        data: prices,
+        borderColor: '#00d4ff',
+        backgroundColor: 'rgba(0, 212, 255, 0.1)',
+        tension: 0.3,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { mode: 'index', intersect: false }
       },
-      options: {
-        responsive: true,
-        plugins: { legend: { display: false } }
+      scales: {
+        y: {
+          beginAtZero: false,
+          grid: { color: '#27272a' }
+        },
+        x: {
+          grid: { color: '#27272a' }
+        }
       }
-    });
-
-  } catch (error) {
-    console.error(error);
-    alert("Error loading historical data: " + error.message);
-  } finally {
-    ctx.style.opacity = "1";
-  }
+    }
+  });
 }
 
     function saveWatchlist() {
