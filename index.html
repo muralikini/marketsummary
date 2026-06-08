@@ -7,19 +7,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   <style>
-    :root {
-      --bg: #0a0a0a;
-      --card: #161625;
-      --text: #e0e0e0;
-      --primary: #00d4ff;
-      --accent: #ff00aa;
-    }
-    [data-theme="light"] {
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --text: #1e2937;
-      --primary: #0066cc;
-    }
+    :root { --bg: #0a0a0a; --card: #161625; --text: #e0e0e0; --primary: #00d4ff; --accent: #ff00aa; }
+    [data-theme="light"] { --bg: #f8fafc; --card: #ffffff; --text: #1e2937; --primary: #0066cc; }
 
     body { font-family: system-ui, sans-serif; margin:0; background: var(--bg); color: var(--text); }
     .container { max-width: 1480px; margin: 0 auto; padding: 20px; }
@@ -27,8 +16,11 @@
     .theme-toggle { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); border: none; width: 52px; height: 52px; border-radius: 50%; cursor: pointer; font-size: 1.5rem; }
 
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-    .card { background: var(--card); border-radius: 20px; padding: 1.8rem; box-shadow: 0 10px 30px rgba(0,0,0,0.3); min-height: 140px; }
+    .card { background: var(--card); border-radius: 20px; padding: 1.8rem; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
     h1 { margin:0; font-size: 2.8rem; background: linear-gradient(90deg, #00d4ff, #ff00aa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px; border-bottom: 1px solid #333; text-align: left; }
+    th { background: #1e2937; }
     .positive { color: #22c55e; }
     .negative { color: #ef4444; }
   </style>
@@ -38,84 +30,120 @@
     <header>
       <button onclick="toggleTheme()" class="theme-toggle" id="theme-btn"><i class="fas fa-moon"></i></button>
       <h1>MarketPulse India</h1>
-      <p id="last-updated">Fetching live data from Alpha Vantage...</p>
+      <p id="last-updated">Fetching data from Alpha Vantage...</p>
     </header>
 
     <div class="grid" id="live-grid"></div>
 
     <div class="card">
-      <h3>📊 Year-wise Performance Summary</h3>
-      <div id="year-table" style="overflow-x:auto;"></div>
+      <h3>📊 Historical Yearly Returns</h3>
+      <div id="yearly-returns" style="overflow-x:auto;"></div>
     </div>
   </div>
 
   <script>
     const API_KEY = "LJVKMQLYR18SFN9Q";
 
-    const symbols = [
+    const assets = [
       { name: "NIFTY 50", symbol: "NIFTY" },
-      { name: "GOLDBEES", symbol: "GOLDBEES" },
-      // Add more as needed
+      { name: "GOLDBEES", symbol: "GOLDBEES" }
     ];
 
-    async function fetchAlphaVantage(symbol) {
+    async function fetchYearlyReturns(symbol) {
       try {
-        const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${API_KEY}&outputsize=compact`;
+        const url = `https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY&symbol=${symbol}&apikey=${API_KEY}`;
         const res = await fetch(url);
         const data = await res.json();
-        
-        if (data["Time Series (Daily)"]) {
-          const latestDate = Object.keys(data["Time Series (Daily)"])[0];
-          const latest = data["Time Series (Daily)"][latestDate];
-          return {
-            price: parseFloat(latest["4. close"]).toFixed(2),
-            change: "N/A" // Alpha Vantage daily doesn't give direct change easily
-          };
-        }
-        return null;
+
+        if (!data["Monthly Time Series"]) return null;
+
+        const monthly = data["Monthly Time Series"];
+        const years = {};
+
+        Object.keys(monthly).forEach(date => {
+          const year = date.substring(0, 4);
+          if (!years[year]) years[year] = { open: null, close: null };
+
+          const monthData = monthly[date];
+          if (!years[year].open) years[year].open = parseFloat(monthData["1. open"]);
+          years[year].close = parseFloat(monthData["4. close"]);
+        });
+
+        const yearlyReturns = {};
+        const sortedYears = Object.keys(years).sort().reverse();
+
+        sortedYears.forEach((year, i) => {
+          if (i < sortedYears.length - 1) {
+            const currentClose = years[year].close;
+            const prevClose = years[sortedYears[i+1]].close;
+            const returnPct = ((currentClose - prevClose) / prevClose) * 100;
+            yearlyReturns[year] = returnPct.toFixed(2);
+          }
+        });
+
+        return { symbol, yearlyReturns };
       } catch (e) {
         console.error(e);
         return null;
       }
     }
 
-    async function updateLiveData() {
+    async function renderYearlyTable() {
+      const container = document.getElementById('yearly-returns');
+      let html = `<table><thead><tr><th>Year</th>`;
+
+      for (let asset of assets) {
+        html += `<th>${asset.name}</th>`;
+      }
+      html += `</tr></thead><tbody>`;
+
+      const results = [];
+      for (let asset of assets) {
+        const data = await fetchYearlyReturns(asset.symbol);
+        if (data) results.push(data);
+      }
+
+      const allYears = [...new Set(results.flatMap(r => Object.keys(r.yearlyReturns)))].sort().reverse();
+
+      allYears.forEach(year => {
+        html += `<tr><td><strong>${year}</strong></td>`;
+        results.forEach(result => {
+          const ret = result.yearlyReturns[year] || '—';
+          const cls = ret > 0 ? 'positive' : (ret < 0 ? 'negative' : '');
+          html += `<td class="${cls}">${ret}%</td>`;
+        });
+        html += `</tr>`;
+      });
+
+      html += `</tbody></table>`;
+      container.innerHTML = html;
+    }
+
+    async function updateLivePrices() {
       const grid = document.getElementById('live-grid');
       grid.innerHTML = '';
 
-      for (let item of symbols) {
-        const data = await fetchAlphaVantage(item.symbol);
-        
-        if (data) {
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.innerHTML = `
-            <h3>${item.name}</h3>
-            <h2>₹${data.price}</h2>
-            <span class="positive">Live</span>
-          `;
-          grid.appendChild(card);
-        }
+      for (let asset of assets) {
+        try {
+          const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${asset.symbol}&apikey=${API_KEY}&outputsize=compact`;
+          const res = await fetch(url);
+          const data = await res.json();
+
+          if (data["Time Series (Daily)"]) {
+            const latest = Object.values(data["Time Series (Daily)"])[0];
+            const price = parseFloat(latest["4. close"]).toFixed(2);
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+              <h3>${asset.name}</h3>
+              <h2>₹${price}</h2>
+              <span class="positive">Live</span>
+            `;
+            grid.appendChild(card);
+          }
+        } catch(e) {}
       }
-
-      document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleTimeString('en-IN')}`;
-    }
-
-    function renderYearTable() {
-      const years = [
-        {year: "2025", n50: "+12.4%", gold: "+19.8%"},
-        {year: "2024", n50: "+15.2%", gold: "+22.4%"},
-        {year: "2023", n50: "+18.9%", gold: "+14.7%"},
-        {year: "2022", n50: "-8.4%",  gold: "+8.9%"},
-        {year: "2021", n50: "+24.1%", gold: "-3.2%"}
-      ];
-
-      let html = `<table><thead><tr><th>Year</th><th>NIFTY 50</th><th>GOLDBEES</th></tr></thead><tbody>`;
-      years.forEach(row => {
-        html += `<tr><td><strong>${row.year}</strong></td><td>${row.n50}</td><td>${row.gold}</td></tr>`;
-      });
-      html += `</tbody></table>`;
-      document.getElementById('year-table').innerHTML = html;
     }
 
     function toggleTheme() {
@@ -124,11 +152,10 @@
       document.getElementById('theme-btn').innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
     }
 
-    // Initialize
     window.onload = () => {
-      renderYearTable();
-      updateLiveData();
-      setInterval(updateLiveData, 300000); // Refresh every 5 minutes
+      renderYearlyTable();
+      updateLivePrices();
+      setInterval(updateLivePrices, 300000); // Refresh every 5 mins
     };
   </script>
 </body>
