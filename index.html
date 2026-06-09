@@ -452,8 +452,22 @@ function hideRawResponse() {
 
 // ==================== ANALYTICS TAB ====================
     const popularScrips = [
-       "GOLDEX","NIFJUN","MOT100","MOTNAS","SBINIF","NIPSIL","BANBEE","NIPNIT","LIBEES"
-    ];
+  { symbol: "GOLDEX", name: "Nippon India ETF Gold BeES" },
+  { symbol: "SILVERBEES", name: "Nippon India Silver ETF" },
+  { symbol: "NIFTYBEES", name: "Nippon India ETF Nifty BeES" },
+  { symbol: "BANKBEES", name: "Nippon India ETF Bank BeES" },
+  { symbol: "MOTNAS", name: "Motilal Oswal Nasdaq 100 ETF" },
+  { symbol: "MOT100", name: "Motilal Oswal Nifty 100 ETF" },
+  { symbol: "CPSEETF", name: "CPSE ETF" },
+  { symbol: "SBINIF", name: "SBI Nifty 50 ETF" },
+  { symbol: "NIPSIL", name: "Nippon India Silver ETF" },
+  { symbol: "NIFJUN", name: "Nippon India ETF Nifty Junior" },
+  { symbol: "RELIANCE", name: "Reliance Industries Ltd" },
+  { symbol: "TCS", name: "Tata Consultancy Services Ltd" },
+  { symbol: "HDFCBANK", name: "HDFC Bank Ltd" },
+  { symbol: "INFY", name: "Infosys Ltd" },
+  { symbol: "ICICIBANK", name: "ICICI Bank Ltd" }
+];
 
     let watchlist = [];
     let currentChart = null;
@@ -463,24 +477,32 @@ function hideRawResponse() {
       if (!select) return;
 
       select.innerHTML = '<option value="">Select a scrip...</option>';
-      popularScrips.forEach(scrip => {
+
+      popularScrips.forEach(item => {
         const option = document.createElement('option');
-        option.value = scrip;
-        option.textContent = scrip;
+        option.value = item.symbol;                    // Only symbol is sent
+        option.textContent = `${item.symbol} - ${item.name}`;  // Shown in dropdown
         select.appendChild(option);
       });
     }
 
     function addToWatchlist() {
-      const select = document.getElementById('scripSelect');
-      const scrip = select.value;
-      if (!scrip || watchlist.includes(scrip)) return;
+  const select = document.getElementById('scripSelect');
+  const symbol = select.value;
 
-      watchlist.push(scrip);
-      renderWatchlist();
-      //generateTipForTheDay();
-      select.value = '';
-    }
+  if (!symbol) return;
+
+  // Check if already exists
+  if (watchlist.some(item => item === symbol || item.symbol === symbol)) {
+    alert("Scrip already in watchlist");
+    return;
+  }
+
+  watchlist.push(symbol);           // Only push the symbol (for backend)
+  renderWatchlist();
+  generateTipForTheDay();
+  select.value = '';
+}
 
     function generateTipForTheDay() {
   const tipContainer = document.getElementById('tip-content');
@@ -571,27 +593,30 @@ function hideRawResponse() {
   tipContainer.innerHTML = html;
 }
 
-    function renderWatchlist() {
-      const container = document.getElementById('watchlist');
-      container.innerHTML = '';
+   function renderWatchlist() {
+  const container = document.getElementById('watchlist');
+  container.innerHTML = '';
 
-      watchlist.forEach((scrip, index) => {
-        const div = document.createElement('div');
-        div.className = `flex justify-between items-center p-3 rounded-xl cursor-pointer hover:bg-zinc-800`;
-        div.innerHTML = `
-          <span class="font-medium">${scrip}</span>
-          <div class="flex gap-2">
-            <button onclick="showHistoricalChart('${scrip}', event)" class="text-emerald-400 hover:text-emerald-300 text-sm">View Chart</button>
-            <button onclick="removeFromWatchlist(${index}, event)" class="text-red-400 hover:text-red-300">×</button>
-          </div>
-        `;
-        container.appendChild(div);
-        
-      });
+  watchlist.forEach((scrip, index) => {
+    // Find full name if available
+    const scripInfo = popularScrips.find(s => s.symbol === scrip);
+    const displayName = scripInfo ? `${scrip} - ${scripInfo.name}` : scrip;
 
-      localStorage.setItem('watchlist', JSON.stringify(watchlist));
-      generateTipForTheDay();
-    }
+    const div = document.createElement('div');
+    div.className = `flex justify-between items-center p-3 rounded-xl cursor-pointer hover:bg-zinc-800`;
+    div.innerHTML = `
+      <span class="font-medium">${displayName}</span>
+      <div class="flex gap-2">
+        <button onclick="showHistoricalChart('${scrip}', event)" class="text-emerald-400 hover:text-emerald-300 text-sm">View Chart</button>
+        <button onclick="removeFromWatchlist(${index}, event)" class="text-red-400 hover:text-red-300">×</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+
+  localStorage.setItem('watchlist', JSON.stringify(watchlist));
+  generateTipForTheDay();
+}
 
     function removeFromWatchlist(index, e) {
       e.stopImmediatePropagation();
