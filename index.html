@@ -55,123 +55,123 @@
         </div>
       </div>
 
-      <!-- ==================== NEW: LIVE MARKET SNAPSHOT ==================== -->
-      <div class="bg-zinc-900 rounded-2xl p-6 mb-8">
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-xl font-semibold flex items-center gap-2">
-            <i class="fas fa-globe text-emerald-400"></i> Live Market Snapshot
-          </h3>
-          <button onclick="refreshAllLivePrices()" 
-                  class="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm">
-            <i class="fas fa-sync-alt"></i> 
-            <span>Refresh All</span>
-          </button>
+      <!-- ==================== LIVE MARKET SNAPSHOT ==================== -->
+<div class="bg-zinc-900 rounded-2xl p-6 mb-8">
+  <div class="flex items-center justify-between mb-6">
+    <h3 class="text-xl font-semibold flex items-center gap-2">
+      <i class="fas fa-globe text-emerald-400"></i> Live Market Snapshot
+    </h3>
+    <button onclick="refreshAllLivePrices()" 
+            class="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm">
+      <i class="fas fa-sync-alt"></i> 
+      <span>Refresh All</span>
+    </button>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    
+    <!-- Crypto -->
+    <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+      <div class="flex justify-between items-start">
+        <div>
+          <p class="text-sm text-zinc-400">Bitcoin (BTC)</p>
+          <p id="btc-price" class="text-2xl font-bold mt-1">Loading...</p>
         </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          
-          <!-- Crypto -->
-          <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
-            <div class="flex justify-between items-start">
-              <div>
-                <p class="text-sm text-zinc-400">Bitcoin (BTC)</p>
-                <p id="btc-price" class="text-2xl font-bold mt-1">Loading...</p>
-              </div>
-              <button onclick="fetchCryptoPrice('bitcoin', 'btc-price')" class="text-emerald-400 hover:text-emerald-300">
-                <i class="fas fa-sync-alt"></i>
-              </button>
-            </div>
-          </div>
-
-          <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
-            <div class="flex justify-between items-start">
-              <div>
-                <p class="text-sm text-zinc-400">Ethereum (ETH)</p>
-                <p id="eth-price" class="text-2xl font-bold mt-1">Loading...</p>
-              </div>
-              <button onclick="fetchCryptoPrice('ethereum', 'eth-price')" class="text-emerald-400 hover:text-emerald-300">
-                <i class="fas fa-sync-alt"></i>
-              </button>
-            </div>
-          </div>
-
-          <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
-            <div class="flex justify-between items-start">
-              <div>
-                <p class="text-sm text-zinc-400">Tether (USDT)</p>
-                <p id="usdt-price" class="text-2xl font-bold mt-1">Loading...</p>
-              </div>
-              <button onclick="fetchCryptoPrice('tether', 'usdt-price')" class="text-emerald-400 hover:text-emerald-300">
-                <i class="fas fa-sync-alt"></i>
-              </button>
-            </div>
-          </div>
-
-          <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
-            <div class="flex justify-between items-start">
-              <div>
-                <p class="text-sm text-zinc-400">USD Coin (USDC)</p>
-                <p id="usdc-price" class="text-2xl font-bold mt-1">Loading...</p>
-              </div>
-              <button onclick="fetchCryptoPrice('usd-coin', 'usdc-price')" class="text-emerald-400 hover:text-emerald-300">
-                <i class="fas fa-sync-alt"></i>
-              </button>
-            </div>
-          </div>
-
-          <!-- Commodities -->
-          <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
-            <div class="flex justify-between items-start">
-              <div>
-                <p class="text-sm text-zinc-400">Gold (per gram)</p>
-                <p id="gold-price" class="text-2xl font-bold mt-1">₹7,850</p>
-              </div>
-              <button onclick="refreshCommodityPrice('gold-price')" class="text-emerald-400 hover:text-emerald-300">
-                <i class="fas fa-sync-alt"></i>
-              </button>
-            </div>
-          </div>
-
-          <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
-            <div class="flex justify-between items-start">
-              <div>
-                <p class="text-sm text-zinc-400">Silver (per gram)</p>
-                <p id="silver-price" class="text-2xl font-bold mt-1">₹95</p>
-              </div>
-              <button onclick="refreshCommodityPrice('silver-price')" class="text-emerald-400 hover:text-emerald-300">
-                <i class="fas fa-sync-alt"></i>
-              </button>
-            </div>
-          </div>
-
-          <!-- Indices -->
-          <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
-            <div class="flex justify-between items-start">
-              <div>
-                <p class="text-sm text-zinc-400">NIFTY 50</p>
-                <p id="nifty50-price" class="text-2xl font-bold mt-1">24,850</p>
-              </div>
-              <button onclick="refreshIndexPrice('nifty50-price')" class="text-emerald-400 hover:text-emerald-300">
-                <i class="fas fa-sync-alt"></i>
-              </button>
-            </div>
-          </div>
-
-          <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
-            <div class="flex justify-between items-start">
-              <div>
-                <p class="text-sm text-zinc-400">Nifty Midcap 100</p>
-                <p id="nifty-midcap-price" class="text-2xl font-bold mt-1">58,200</p>
-              </div>
-              <button onclick="refreshIndexPrice('nifty-midcap-price')" class="text-emerald-400 hover:text-emerald-300">
-                <i class="fas fa-sync-alt"></i>
-              </button>
-            </div>
-          </div>
-
-        </div>
-        <p class="text-xs text-zinc-500 mt-4">Crypto prices are live via CoinGecko. Other prices are demo (connect via backend for real data).</p>
+        <button onclick="fetchCryptoPrice('bitcoin', 'btc-price')" class="text-emerald-400 hover:text-emerald-300">
+          <i class="fas fa-sync-alt"></i>
+        </button>
       </div>
+    </div>
+
+    <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+      <div class="flex justify-between items-start">
+        <div>
+          <p class="text-sm text-zinc-400">Ethereum (ETH)</p>
+          <p id="eth-price" class="text-2xl font-bold mt-1">Loading...</p>
+        </div>
+        <button onclick="fetchCryptoPrice('ethereum', 'eth-price')" class="text-emerald-400 hover:text-emerald-300">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+      <div class="flex justify-between items-start">
+        <div>
+          <p class="text-sm text-zinc-400">Tether (USDT)</p>
+          <p id="usdt-price" class="text-2xl font-bold mt-1">Loading...</p>
+        </div>
+        <button onclick="fetchCryptoPrice('tether', 'usdt-price')" class="text-emerald-400 hover:text-emerald-300">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+      <div class="flex justify-between items-start">
+        <div>
+          <p class="text-sm text-zinc-400">USD Coin (USDC)</p>
+          <p id="usdc-price" class="text-2xl font-bold mt-1">Loading...</p>
+        </div>
+        <button onclick="fetchCryptoPrice('usd-coin', 'usdc-price')" class="text-emerald-400 hover:text-emerald-300">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Gold & Silver (Now Live) -->
+    <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+      <div class="flex justify-between items-start">
+        <div>
+          <p class="text-sm text-zinc-400">Gold (per gram)</p>
+          <p id="gold-price" class="text-2xl font-bold mt-1">Loading...</p>
+        </div>
+        <button onclick="fetchGoldSilverPrice('XAU', 'gold-price')" class="text-emerald-400 hover:text-emerald-300">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+      <div class="flex justify-between items-start">
+        <div>
+          <p class="text-sm text-zinc-400">Silver (per gram)</p>
+          <p id="silver-price" class="text-2xl font-bold mt-1">Loading...</p>
+        </div>
+        <button onclick="fetchGoldSilverPrice('XAG', 'silver-price')" class="text-emerald-400 hover:text-emerald-300">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- NIFTY Indices -->
+    <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+      <div class="flex justify-between items-start">
+        <div>
+          <p class="text-sm text-zinc-400">NIFTY 50</p>
+          <p id="nifty50-price" class="text-2xl font-bold mt-1">24,850</p>
+        </div>
+        <button onclick="refreshIndexPrice('nifty50-price')" class="text-emerald-400 hover:text-emerald-300">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+      <div class="flex justify-between items-start">
+        <div>
+          <p class="text-sm text-zinc-400">Nifty Midcap 100</p>
+          <p id="nifty-midcap-price" class="text-2xl font-bold mt-1">58,200</p>
+        </div>
+        <button onclick="refreshIndexPrice('nifty-midcap-price')" class="text-emerald-400 hover:text-emerald-300">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+      </div>
+    </div>
+
+  </div>
+  <p class="text-xs text-zinc-500 mt-4">Crypto &amp; Gold/Silver prices are live. NIFTY prices are demo (can be connected via your backend).</p>
+</div>
 
       <!-- Existing Dashboard Content -->
       <div class="bg-zinc-900 rounded-2xl p-6 mb-8">
@@ -228,37 +228,59 @@
 
     // ==================== NEW: LIVE PRICES ====================
 
-    // Fetch Crypto Prices using CoinGecko (Free API)
-    async function fetchCryptoPrice(coinId, elementId) {
-      const el = document.getElementById(elementId);
-      el.innerHTML = `<span class="text-sm text-zinc-400">Updating...</span>`;
+    // Fetch Crypto Prices (CoinGecko)
+async function fetchCryptoPrice(coinId, elementId) {
+  const el = document.getElementById(elementId);
+  el.innerHTML = `<span class="text-sm text-zinc-400">Updating...</span>`;
 
-      try {
-        const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=inr`);
-        const data = await res.json();
-        const price = data[coinId]?.inr;
+  try {
+    const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=inr`);
+    const data = await res.json();
+    const price = data[coinId]?.inr;
 
-        if (price) {
-          el.innerHTML = `₹${price.toLocaleString('en-IN')}`;
-        } else {
-          el.innerHTML = "N/A";
-        }
-      } catch (error) {
-        el.innerHTML = "Error";
-        console.error(error);
-      }
+    if (price) {
+      el.innerHTML = `₹${price.toLocaleString('en-IN')}`;
+    } else {
+      el.innerHTML = "N/A";
     }
+  } catch (error) {
+    el.innerHTML = "Error";
+  }
+}
 
-    // Refresh individual commodity (demo for now)
-    function refreshCommodityPrice(elementId) {
-      const el = document.getElementById(elementId);
-      el.style.opacity = "0.5";
-      setTimeout(() => {
-        el.style.opacity = "1";
-        // You can later connect real API here
-        alert("Live commodity data can be connected via backend");
-      }, 800);
+// Fetch Live Gold & Silver Prices (Free API)
+async function fetchGoldSilverPrice(symbol, elementId) {
+  const el = document.getElementById(elementId);
+  el.innerHTML = `<span class="text-sm text-zinc-400">Updating...</span>`;
+
+  try {
+    const res = await fetch(`https://api.gold-api.com/price/${symbol}`);
+    const data = await res.json();
+
+    if (data && data.price) {
+      // Convert from per ounce to per gram (1 ounce = 31.1035 grams)
+      const pricePerGram = (data.price / 31.1035).toFixed(2);
+      el.innerHTML = `₹${parseFloat(pricePerGram).toLocaleString('en-IN')}`;
+    } else {
+      el.innerHTML = "N/A";
     }
+  } catch (error) {
+    el.innerHTML = "Error";
+    console.error("Gold/Silver fetch error:", error);
+  }
+}
+
+// Refresh All
+function refreshAllLivePrices() {
+  fetchCryptoPrice('bitcoin', 'btc-price');
+  fetchCryptoPrice('ethereum', 'eth-price');
+  fetchCryptoPrice('tether', 'usdt-price');
+  fetchCryptoPrice('usd-coin', 'usdc-price');
+  fetchGoldSilverPrice('XAU', 'gold-price');
+  fetchGoldSilverPrice('XAG', 'silver-price');
+}
+
+    
 
     // Refresh Indian Indices (demo)
     function refreshIndexPrice(elementId) {
@@ -298,12 +320,15 @@
       loadAnalyzeDropdown();
 
       // Load initial live crypto prices
-      setTimeout(() => {
-        fetchCryptoPrice('bitcoin', 'btc-price');
-        fetchCryptoPrice('ethereum', 'eth-price');
-        fetchCryptoPrice('tether', 'usdt-price');
-        fetchCryptoPrice('usd-coin', 'usdc-price');
-      }, 1500);
+      // Auto load live prices
+setTimeout(() => {
+  fetchCryptoPrice('bitcoin', 'btc-price');
+  fetchCryptoPrice('ethereum', 'eth-price');
+  fetchCryptoPrice('tether', 'usdt-price');
+  fetchCryptoPrice('usd-coin', 'usdc-price');
+  fetchGoldSilverPrice('XAU', 'gold-price');
+  fetchGoldSilverPrice('XAG', 'silver-price');
+}, 1200);
 
       showTab(0);
     };
