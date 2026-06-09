@@ -201,10 +201,10 @@
         <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
           <div class="flex justify-between items-start">
             <div>
-              <p class="text-sm text-zinc-400">Nifty Midcap 100</p>
+              <p class="text-sm text-zinc-400">Sensex</p>
               <p id="nifty-midcap-price" class="text-2xl font-bold mt-1">Loading...</p>
             </div>
-            <button onclick="fetchLiveNiftyPrice('MIDCAP', 'nifty-midcap-price')" 
+            <button onclick="fetchLiveNiftyPrice('SENSEX', 'sensex-price')" 
                     class="text-emerald-400 hover:text-emerald-300">
               <i class="fas fa-sync-alt"></i>
             </button>
@@ -997,7 +997,7 @@ function refreshAllLivePrices() {
   fetchYahooIndex('^IXIC', 'nasdaq-price');
   fetchYahooIndex('^DJI', 'dow-price');
   fetchLiveNiftyPrice('NIFTY', 'nifty50-price');
-  fetchLiveNiftyPrice('MIDCAP', 'nifty-midcap-price');
+  fetchLiveNiftyPrice('SENSEX', 'sensex-price');
 }
 
     // ==================== INITIALIZE ====================
@@ -1022,7 +1022,7 @@ function refreshAllLivePrices() {
     fetchYahooIndex('^IXIC', 'nasdaq-price');   // ← Fixed
     fetchYahooIndex('^DJI', 'dow-price');       // ← Fixed
     fetchLiveNiftyPrice('NIFTY', 'nifty50-price');
-    fetchLiveNiftyPrice('MIDCAP', 'nifty-midcap-price');
+    fetchLiveNiftyPrice('SENSEX', 'sensex-price');
   }, 1500);
 
   showTab(0);
