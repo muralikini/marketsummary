@@ -231,22 +231,6 @@
 </div>
 </div>
 
-    <!-- ==================== TIP FOR THE DAY ==================== -->
-<div class="mt-8 bg-zinc-900 rounded-2xl p-6 border border-zinc-700">
-  <div class="flex items-center gap-3 mb-4">
-    <i class="fas fa-lightbulb text-yellow-400 text-2xl"></i>
-    <h3 class="text-xl font-semibold">Tip for the Day</h3>
-    <span class="text-xs px-3 py-1 bg-yellow-900 text-yellow-400 rounded-full">Long-term View</span>
-  </div>
-  
-  <div id="tip-content" class="text-zinc-300 leading-relaxed">
-    <!-- Dynamic tip will be injected here by JavaScript -->
-  </div>
-  
-  <div class="mt-4 text-xs text-zinc-500">
-    Tip is generated based on your current watchlist and long-term investing principles.
-  </div>
-</div>
 
   </div>
 </div>
@@ -500,99 +484,11 @@ function hideRawResponse() {
 
   watchlist.push(symbol);           // Only push the symbol (for backend)
   renderWatchlist();
-  generateTipForTheDay();
+  
   select.value = '';
 }
 
-    function generateTipForTheDay() {
-  const tipContainer = document.getElementById('tip-content');
-  if (!tipContainer) return;
-
-  if (!watchlist || watchlist.length === 0) {
-    tipContainer.innerHTML = `
-      <p class="text-zinc-400">Add some scrips to your watchlist to receive personalized long-term investment guidance.</p>
-    `;
-    return;
-  }
-
-  // Extract symbols
-  const symbols = watchlist.map(item => {
-    if (typeof item === 'string') return item.toUpperCase();
-    return (item.symbol || item).toUpperCase();
-  });
-
-  // Categorization
-  const hasGoldSilver = symbols.some(s => 
-    s.includes("GOLD") || s.includes("SILVER") || s === "GOLDEX"
-  );
-  const hasInternational = symbols.some(s => 
-    ["MOTNAS", "NASDAQ100", "USATECH"].includes(s)
-  );
-  const hasBanking = symbols.some(s => 
-    ["HDFCBANK", "ICICIBANK", "SBIN", "AXISBANK", "KOTAKBANK", "SBINIF"].includes(s)
-  );
-  const hasTech = symbols.some(s => 
-    ["TCS", "INFY", "HCLTECH", "WIPRO", "TECHM"].includes(s)
-  );
-  const hasNifty = symbols.some(s => 
-    s.includes("NIFTY") || s.includes("NIF") || s === "NIFTY 50"
-  );
-  const hasMidSmall = symbols.some(s => 
-    s.includes("MIDCAP") || s.includes("SMALLCAP") || s.includes("JUNIOR")
-  );
-
-  let tips = [];
-
-  // === DYNAMIC TIP GENERATION ===
-
-  // 1. Diversification Check
-  if (!hasGoldSilver && !hasInternational) {
-    tips.push("Your portfolio appears heavily concentrated in Indian equities. As a long-term investor, consider gradually adding 10-15% allocation in gold/silver ETFs and 10-20% in international funds (like MOTNAS) to reduce India-specific risks over the next 7–10 years.");
-  }
-
-  // 2. Gold/Silver Allocation
-  if (hasGoldSilver) {
-    tips.push("Gold and silver ETFs act as excellent portfolio stabilizers during high inflation or global uncertainty. For long-term investors, maintaining 8-12% in precious metals has historically improved risk-adjusted returns over 10+ year periods.");
-  }
-
-  // 3. International Exposure
-  if (hasInternational) {
-    tips.push("International exposure is a smart long-term move. It gives you access to global innovation and acts as a currency hedge. Continue SIPs in these for at least 8–10 years to fully benefit from geographical diversification.");
-  }
-
-  // 4. Sector Concentration Warning
-  if (hasTech && !hasBanking && !hasGoldSilver) {
-    tips.push("High allocation to technology can deliver strong compounding over long periods, but it also increases volatility. Consider balancing it with stable sectors like banking or consumption for smoother long-term wealth creation.");
-  }
-
-  // 5. Banking/Financials View
-  if (hasBanking) {
-    tips.push("Banking stocks are core to India's long-term growth story. However, they are cyclical. Maintain a 7+ year investment horizon and avoid reacting to short-term news around NPAs or interest rates.");
-  }
-
-  // 6. Index vs Active
-  if (hasNifty && watchlist.length > 3) {
-    tips.push("You're combining index investing with individual stocks. This is a balanced approach. Keep your core allocation in broad indices (like Nifty ETFs) and use individual stocks only for high-conviction ideas with a 8–12 year view.");
-  }
-
-  // 7. Mid & Small Cap Caution
-  if (hasMidSmall) {
-    tips.push("Mid and small-cap stocks can generate exceptional long-term returns, but they are also more volatile. As a long-term investor, ensure you have the emotional discipline to hold through 30-50% drawdowns, which are common in this segment.");
-  }
-
-  // 8. General Long-term Principle (Always shown)
-  tips.push("Remember: **Time in the market beats timing the market**. The biggest wealth is usually created by staying invested in quality businesses through multiple market cycles rather than trying to predict short-term movements.");
-
-  // Final Output
-  let html = "<ul class='space-y-3'>";
-  tips.forEach(tip => {
-    html += `<li class="flex gap-2"><span class="text-yellow-400 mt-1">•</span> <span>${tip}</span></li>`;
-  });
-  html += "</ul>";
-
-  tipContainer.innerHTML = html;
-}
-
+   
    function renderWatchlist() {
   const container = document.getElementById('watchlist');
   container.innerHTML = '';
@@ -615,7 +511,7 @@ function hideRawResponse() {
   });
 
   localStorage.setItem('watchlist', JSON.stringify(watchlist));
-  generateTipForTheDay();
+  
 }
 
     function removeFromWatchlist(index, e) {
@@ -808,10 +704,7 @@ function loadSavedWatchlist() {
   if (saved) {
     watchlist = JSON.parse(saved);
     renderWatchlist();           // This already calls generateTipForTheDay()
-  } else {
-    // If nothing is saved, still generate the default message
-    generateTipForTheDay();
-  }
+  } 
 }
 
     
@@ -826,12 +719,6 @@ function loadSavedWatchlist() {
     loadScripDropdown();
     loadSavedWatchlist();
 
-    // Force generate tip after everything is loaded
-    setTimeout(() => {
-      generateTipForTheDay();
-    }, 300);
-
-    showTab(0);
     };
   </script>
 </body>
