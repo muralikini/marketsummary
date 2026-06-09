@@ -217,6 +217,23 @@
       <p id="chart-note" class="text-xs text-zinc-500 mt-2">Historical data </p>
     </div>
 
+    <!-- ==================== TIP FOR THE DAY ==================== -->
+<div class="mt-8 bg-zinc-900 rounded-2xl p-6 border border-zinc-700">
+  <div class="flex items-center gap-3 mb-4">
+    <i class="fas fa-lightbulb text-yellow-400 text-2xl"></i>
+    <h3 class="text-xl font-semibold">Tip for the Day</h3>
+    <span class="text-xs px-3 py-1 bg-yellow-900 text-yellow-400 rounded-full">Long-term View</span>
+  </div>
+  
+  <div id="tip-content" class="text-zinc-300 leading-relaxed">
+    <!-- Dynamic tip will be injected here by JavaScript -->
+  </div>
+  
+  <div class="mt-4 text-xs text-zinc-500">
+    Tip is generated based on your current watchlist and long-term investing principles.
+  </div>
+</div>
+
   </div>
 </div>
 </div>
@@ -421,7 +438,7 @@ function hideRawResponse() {
 
 // ==================== ANALYTICS TAB ====================
     const popularScrips = [
-      "GOLDEX","NIFJUN","MOT100","MOTNAS","SBINIF","NIPSIL","BANBEE","NIPNIT","LIBEES"
+       "GOLDEX","NIFJUN","MOT100","MOTNAS","SBINIF","NIPSIL","BANBEE","NIPNIT","LIBEES"
     ];
 
     let watchlist = [];
@@ -447,6 +464,7 @@ function hideRawResponse() {
 
       watchlist.push(scrip);
       renderWatchlist();
+      generateTipForTheDay();
       select.value = '';
     }
 
@@ -593,6 +611,46 @@ async function showHistoricalChart(scrip, e) {
       }
     }
 
+    function generateTipForTheDay() {
+  const tipContainer = document.getElementById('tip-content');
+  if (!tipContainer || watchlist.length === 0) {
+    tipContainer.innerHTML = `
+      <p class="text-zinc-400">Add some scrips to your watchlist to get personalized long-term investment tips.</p>
+    `;
+    return;
+  }
+
+  const symbols = watchlist.map(item => item.symbol || item);
+  let tip = "";
+
+  // Smart logic based on watchlist
+  const hasGold = symbols.some(s => s.includes("GOLD") || s.includes("SILVER"));
+  const hasTech = symbols.some(s => ["TCS", "INFY", "HCLTECH", "WIPRO", "TECHM"].includes(s));
+  const hasBanking = symbols.some(s => ["HDFCBANK", "ICICIBANK", "SBIN", "AXISBANK", "KOTAKBANK"].includes(s));
+  const hasNifty = symbols.some(s => s.includes("NIFTY") || s === "NIFTY 50");
+  const hasInternational = symbols.some(s => ["MOTNAS", "NASDAQ100"].includes(s));
+
+  if (hasGold && hasTech) {
+    tip = `Your watchlist shows a good balance between growth (tech) and stability (gold). For a long-term investor, this combination helps during both economic expansions and uncertain times. Consider maintaining 10-15% allocation in gold/silver ETFs as a hedge.`;
+  } 
+  else if (hasTech && !hasGold) {
+    tip = `Your portfolio appears growth-oriented. While tech stocks have delivered strong long-term returns, high concentration in one sector increases volatility. Consider adding some gold or broad market ETFs (like NIFTYBEES) for better diversification over the next 7–10 years.`;
+  } 
+  else if (hasBanking) {
+    tip = `Banking stocks are excellent for long-term wealth creation in India due to structural growth in credit. However, they can be cyclical. Keep a 5–7 year view and avoid panic during short-term NPA or interest rate concerns.`;
+  } 
+  else if (hasInternational) {
+    tip = `Adding international exposure (like MOTNAS) is a smart move for long-term investors. It reduces India-specific risks and gives exposure to global innovation. Continue SIPs and stay invested for at least 7+ years to benefit from currency and market diversification.`;
+  } 
+  else if (hasNifty) {
+    tip = `Index investing through Nifty ETFs is one of the simplest and most effective long-term strategies. Stay consistent with your investments. The real power of index funds comes from staying invested for 10+ years through multiple market cycles.`;
+  } 
+  else {
+    tip = `As a long-term investor, focus on three things: <strong>Quality businesses</strong>, <strong>Reasonable valuations</strong>, and <strong>Time in the market</strong>. Avoid frequent churning. The biggest wealth is usually created by staying invested in fundamentally strong companies for 8–12 years.`;
+  }
+
+  tipContainer.innerHTML = `<p>${tip}</p>`;
+}
 
  // ==================== INITIALIZE ====================
     window.onload = function() {
