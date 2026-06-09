@@ -855,49 +855,44 @@
     }
 
     // ==================== LIVE PRICES ====================
-    async function fetchCryptoPrice(coinId, elementId) {
-      const el = document.getElementById(elementId);
-      el.innerHTML = `<span class="text-sm text-zinc-400">Updating...</span>`;
+    // Crypto (CoinGecko)
+async function fetchCryptoPrice(coinId, elementId) {
+  const el = document.getElementById(elementId);
+  el.innerHTML = `<span class="text-sm text-zinc-400">Updating...</span>`;
+  try {
+    const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=inr`);
+    const data = await res.json();
+    const price = data[coinId]?.inr;
+    el.innerHTML = price ? `₹${price.toLocaleString('en-IN')}` : "N/A";
+  } catch {
+    el.innerHTML = "Error";
+  }
+}
 
-      try {
-        const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=inr`);
-        const data = await res.json();
-        const price = data[coinId]?.inr;
-        el.innerHTML = price ? `₹${price.toLocaleString('en-IN')}` : "N/A";
-      } catch {
-        el.innerHTML = "Error";
-      }
+    // Gold & Silver - Show raw value from API (USD per ounce)
+async function fetchGoldSilverPrice(symbol, elementId) {
+  const el = document.getElementById(elementId);
+  el.innerHTML = `<span class="text-sm text-zinc-400">Updating...</span>`;
+  try {
+    const res = await fetch(`https://api.gold-api.com/price/${symbol}`);
+    const data = await res.json();
+    if (data && data.price) {
+      el.innerHTML = `$${parseFloat(data.price).toFixed(2)}`;
+    } else {
+      el.innerHTML = "N/A";
     }
+  } catch {
+    el.innerHTML = "Error";
+  }
+}
 
-    async function fetchGoldSilverPrice(symbol, elementId) {
-      const el = document.getElementById(elementId);
-      el.innerHTML = `<span class="text-sm text-zinc-400">Updating...</span>`;
-
-      try {
-        const res = await fetch(`https://api.gold-api.com/price/${symbol}`);
-        const data = await res.json();
-        if (data && data.price) {
-          const pricePerGram = (data.price / 31.1035).toFixed(2);
-          el.innerHTML = `₹${parseFloat(pricePerGram).toLocaleString('en-IN')}`;
-        } else {
-          el.innerHTML = "N/A";
-        }
-      } catch {
-        el.innerHTML = "Error";
-      }
-    }
-
-   // NASDAQ
+// NASDAQ & DOW - Using Backend (yfinance)
 async function fetchYahooIndex(symbol, elementId) {
   const el = document.getElementById(elementId);
   el.innerHTML = `<span class="text-sm text-zinc-400">Updating...</span>`;
-
   try {
     const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
-    let endpoint = "";
-
-    if (symbol === "^IXIC") endpoint = "/api/market/nasdaq";
-    else if (symbol === "^DJI") endpoint = "/api/market/dow";
+    let endpoint = symbol === "^IXIC" ? "/api/market/nasdaq" : "/api/market/dow";
 
     const res = await fetch(`${BACKEND_URL}${endpoint}`);
     const data = await res.json();
@@ -912,11 +907,10 @@ async function fetchYahooIndex(symbol, elementId) {
   }
 }
 
-// Crude Oil
+// Crude Oil - Using Backend
 async function fetchCrudeOilPrice() {
   const el = document.getElementById('crude-price');
   el.innerHTML = `<span class="text-sm text-zinc-400">Updating...</span>`;
-
   try {
     const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
     const res = await fetch(`${BACKEND_URL}/api/market/crude`);
@@ -956,43 +950,44 @@ async function fetchCrudeOilPrice() {
       }, 600);
     }
 
-    function refreshAllLivePrices() {
-      fetchCryptoPrice('bitcoin', 'btc-price');
-      fetchCryptoPrice('ethereum', 'eth-price');
-      fetchCryptoPrice('tether', 'usdt-price');
-      fetchCryptoPrice('usd-coin', 'usdc-price');
-      fetchGoldSilverPrice('XAU', 'gold-price');
-      fetchGoldSilverPrice('XAG', 'silver-price');
-      fetchCrudeOilPrice();
-      fetchYahooIndex('^IXIC', 'nasdaq-price');
-      fetchYahooIndex('^DJI', 'dow-price');
-    }
+    // Refresh All
+function refreshAllLivePrices() {
+  fetchCryptoPrice('bitcoin', 'btc-price');
+  fetchCryptoPrice('ethereum', 'eth-price');
+  fetchCryptoPrice('tether', 'usdt-price');
+  fetchCryptoPrice('usd-coin', 'usdc-price');
+  fetchGoldSilverPrice('XAU', 'gold-price');
+  fetchGoldSilverPrice('XAG', 'silver-price');
+  fetchCrudeOilPrice();
+  fetchYahooIndex('^IXIC', 'nasdaq-price');
+  fetchYahooIndex('^DJI', 'dow-price');
+}
 
     // ==================== INITIALIZE ====================
     window.onload = function() {
-      renderEquityTable();
-      createGoldSilverChart();
-      createRatioChart();
+  renderEquityTable();
+  createGoldSilverChart();
+  createRatioChart();
 
-      loadScripDropdown();
-      loadSavedWatchlist();
-      loadAnalyzeDropdown();
+  loadScripDropdown();
+  loadSavedWatchlist();
+  loadAnalyzeDropdown();
 
-      // Auto load live prices
-      setTimeout(() => {
-        fetchCryptoPrice('bitcoin', 'btc-price');
-        fetchCryptoPrice('ethereum', 'eth-price');
-        fetchCryptoPrice('tether', 'usdt-price');
-        fetchCryptoPrice('usd-coin', 'usdc-price');
-        fetchGoldSilverPrice('XAU', 'gold-price');
-        fetchGoldSilverPrice('XAG', 'silver-price');
-        fetchCrudeOilPrice();
-        fetchIndexPrice('^IXIC', 'nasdaq-price');
-        fetchIndexPrice('^DJI', 'dow-price');
-      }, 1500);
+  // Auto load live prices
+  setTimeout(() => {
+    fetchCryptoPrice('bitcoin', 'btc-price');
+    fetchCryptoPrice('ethereum', 'eth-price');
+    fetchCryptoPrice('tether', 'usdt-price');
+    fetchCryptoPrice('usd-coin', 'usdc-price');
+    fetchGoldSilverPrice('XAU', 'gold-price');
+    fetchGoldSilverPrice('XAG', 'silver-price');
+    fetchCrudeOilPrice();
+    fetchYahooIndex('^IXIC', 'nasdaq-price');   // ← Fixed
+    fetchYahooIndex('^DJI', 'dow-price');       // ← Fixed
+  }, 1500);
 
-      showTab(0);
-    };
+  showTab(0);
+};
   </script>
 </body>
 </html>
