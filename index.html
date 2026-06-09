@@ -483,6 +483,7 @@ function hideRawResponse() {
           </div>
         `;
         container.appendChild(div);
+        generateTipForTheDay();
       });
 
       localStorage.setItem('watchlist', JSON.stringify(watchlist));
@@ -608,6 +609,7 @@ async function showHistoricalChart(scrip, e) {
       if (saved) {
         watchlist = JSON.parse(saved);
         renderWatchlist();
+        generateTipForTheDay();
       }
     }
 
