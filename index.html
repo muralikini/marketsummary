@@ -468,6 +468,58 @@ function hideRawResponse() {
       select.value = '';
     }
 
+    function generateTipForTheDay() {
+  const tipContainer = document.getElementById('tip-content');
+  if (!tipContainer) return;
+
+  if (!watchlist || watchlist.length === 0) {
+    tipContainer.innerHTML = `
+      <p class="text-zinc-400">Add some scrips to your watchlist to get personalized long-term investment tips.</p>
+    `;
+    return;
+  }
+
+  // Extract symbols safely (works whether watchlist has strings or objects)
+  const symbols = watchlist.map(item => {
+    if (typeof item === 'string') return item;
+    return item.symbol || item;
+  });
+
+  let tip = "";
+
+  const hasGoldSilver = symbols.some(s => 
+    s.includes("GOLD") || s.includes("SILVER") || s === "GOLDEX"
+  );
+  const hasTech = symbols.some(s => ["TCS", "INFY", "HCLTECH", "WIPRO"].includes(s));
+  const hasBanking = symbols.some(s => 
+    ["HDFCBANK", "ICICIBANK", "SBIN", "AXISBANK", "KOTAKBANK", "SBINIF"].includes(s)
+  );
+  const hasInternational = symbols.some(s => ["MOTNAS", "NASDAQ100"].includes(s));
+  const hasNifty = symbols.some(s => s.includes("NIFTY") || s.includes("NIF"));
+
+  // Long-term focused tips
+  if (hasGoldSilver && hasTech) {
+    tip = `Your watchlist shows a healthy mix of growth (tech) and stability (gold/silver). For long-term investors, this combination works well across market cycles. Consider keeping 10-15% in gold/silver ETFs as a hedge against inflation and uncertainty over the next 7–10 years.`;
+  } 
+  else if (hasTech && !hasGoldSilver) {
+    tip = `Your portfolio is growth-heavy. While tech can deliver strong long-term returns, high concentration increases volatility. As a long-term investor, consider gradually adding some gold or broad market ETFs to improve diversification over the next decade.`;
+  } 
+  else if (hasBanking) {
+    tip = `Banking stocks are excellent for long-term wealth creation in India. However, they can face short-term cyclical challenges. Maintain a 7+ year view and avoid reacting to quarterly results or interest rate noise.`;
+  } 
+  else if (hasInternational) {
+    tip = `Adding international exposure (like MOTNAS) is a wise long-term decision. It reduces India-specific risks and gives you access to global innovation. Continue SIPs and stay invested for at least 7–10 years to benefit from both equity growth and currency diversification.`;
+  } 
+  else if (hasNifty) {
+    tip = `Index investing through Nifty-related instruments is one of the most effective long-term strategies. The real wealth is created by staying invested consistently for 10+ years across multiple market cycles. Keep your SIPs running.`;
+  } 
+  else {
+    tip = `As a long-term investor, remember these three principles: <strong>Own quality businesses</strong>, <strong>Buy at reasonable valuations</strong>, and <strong>Give time for compounding</strong>. Avoid frequent changes in your portfolio. The biggest returns usually come from staying invested for 8–12 years.`;
+  }
+
+  tipContainer.innerHTML = `<p>${tip}</p>`;
+}
+
     function renderWatchlist() {
       const container = document.getElementById('watchlist');
       container.innerHTML = '';
@@ -613,47 +665,7 @@ async function showHistoricalChart(scrip, e) {
       }
     }
 
-    function generateTipForTheDay() {
-  const tipContainer = document.getElementById('tip-content');
-  if (!tipContainer || watchlist.length === 0) {
-    tipContainer.innerHTML = `
-      <p class="text-zinc-400">Add some scrips to your watchlist to get personalized long-term investment tips.</p>
-    `;
-    return;
-  }
-
-  const symbols = watchlist.map(item => item.symbol || item);
-  let tip = "";
-
-  // Smart logic based on watchlist
-  const hasGold = symbols.some(s => s.includes("GOLD") || s.includes("SILVER"));
-  const hasTech = symbols.some(s => ["TCS", "INFY", "HCLTECH", "WIPRO", "TECHM"].includes(s));
-  const hasBanking = symbols.some(s => ["HDFCBANK", "ICICIBANK", "SBIN", "AXISBANK", "KOTAKBANK"].includes(s));
-  const hasNifty = symbols.some(s => s.includes("NIFTY") || s === "NIFTY 50");
-  const hasInternational = symbols.some(s => ["MOTNAS", "NASDAQ100"].includes(s));
-
-  if (hasGold && hasTech) {
-    tip = `Your watchlist shows a good balance between growth (tech) and stability (gold). For a long-term investor, this combination helps during both economic expansions and uncertain times. Consider maintaining 10-15% allocation in gold/silver ETFs as a hedge.`;
-  } 
-  else if (hasTech && !hasGold) {
-    tip = `Your portfolio appears growth-oriented. While tech stocks have delivered strong long-term returns, high concentration in one sector increases volatility. Consider adding some gold or broad market ETFs (like NIFTYBEES) for better diversification over the next 7–10 years.`;
-  } 
-  else if (hasBanking) {
-    tip = `Banking stocks are excellent for long-term wealth creation in India due to structural growth in credit. However, they can be cyclical. Keep a 5–7 year view and avoid panic during short-term NPA or interest rate concerns.`;
-  } 
-  else if (hasInternational) {
-    tip = `Adding international exposure (like MOTNAS) is a smart move for long-term investors. It reduces India-specific risks and gives exposure to global innovation. Continue SIPs and stay invested for at least 7+ years to benefit from currency and market diversification.`;
-  } 
-  else if (hasNifty) {
-    tip = `Index investing through Nifty ETFs is one of the simplest and most effective long-term strategies. Stay consistent with your investments. The real power of index funds comes from staying invested for 10+ years through multiple market cycles.`;
-  } 
-  else {
-    tip = `As a long-term investor, focus on three things: <strong>Quality businesses</strong>, <strong>Reasonable valuations</strong>, and <strong>Time in the market</strong>. Avoid frequent churning. The biggest wealth is usually created by staying invested in fundamentally strong companies for 8–12 years.`;
-  }
-
-  tipContainer.innerHTML = `<p>${tip}</p>`;
-}
-
+    
  // ==================== INITIALIZE ====================
     window.onload = function() {
       renderEquityTable();
