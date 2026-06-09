@@ -474,50 +474,87 @@ function hideRawResponse() {
 
   if (!watchlist || watchlist.length === 0) {
     tipContainer.innerHTML = `
-      <p class="text-zinc-400">Add some scrips to your watchlist to get personalized long-term investment tips.</p>
+      <p class="text-zinc-400">Add some scrips to your watchlist to receive personalized long-term investment guidance.</p>
     `;
     return;
   }
 
-  // Extract symbols safely (works whether watchlist has strings or objects)
+  // Extract symbols
   const symbols = watchlist.map(item => {
-    if (typeof item === 'string') return item;
-    return item.symbol || item;
+    if (typeof item === 'string') return item.toUpperCase();
+    return (item.symbol || item).toUpperCase();
   });
 
-  let tip = "";
-
+  // Categorization
   const hasGoldSilver = symbols.some(s => 
     s.includes("GOLD") || s.includes("SILVER") || s === "GOLDEX"
   );
-  const hasTech = symbols.some(s => ["TCS", "INFY", "HCLTECH", "WIPRO"].includes(s));
+  const hasInternational = symbols.some(s => 
+    ["MOTNAS", "NASDAQ100", "USATECH"].includes(s)
+  );
   const hasBanking = symbols.some(s => 
     ["HDFCBANK", "ICICIBANK", "SBIN", "AXISBANK", "KOTAKBANK", "SBINIF"].includes(s)
   );
-  const hasInternational = symbols.some(s => ["MOTNAS", "NASDAQ100"].includes(s));
-  const hasNifty = symbols.some(s => s.includes("NIFTY") || s.includes("NIF"));
+  const hasTech = symbols.some(s => 
+    ["TCS", "INFY", "HCLTECH", "WIPRO", "TECHM"].includes(s)
+  );
+  const hasNifty = symbols.some(s => 
+    s.includes("NIFTY") || s.includes("NIF") || s === "NIFTY 50"
+  );
+  const hasMidSmall = symbols.some(s => 
+    s.includes("MIDCAP") || s.includes("SMALLCAP") || s.includes("JUNIOR")
+  );
 
-  // Long-term focused tips
-  if (hasGoldSilver && hasTech) {
-    tip = `Your watchlist shows a healthy mix of growth (tech) and stability (gold/silver). For long-term investors, this combination works well across market cycles. Consider keeping 10-15% in gold/silver ETFs as a hedge against inflation and uncertainty over the next 7–10 years.`;
-  } 
-  else if (hasTech && !hasGoldSilver) {
-    tip = `Your portfolio is growth-heavy. While tech can deliver strong long-term returns, high concentration increases volatility. As a long-term investor, consider gradually adding some gold or broad market ETFs to improve diversification over the next decade.`;
-  } 
-  else if (hasBanking) {
-    tip = `Banking stocks are excellent for long-term wealth creation in India. However, they can face short-term cyclical challenges. Maintain a 7+ year view and avoid reacting to quarterly results or interest rate noise.`;
-  } 
-  else if (hasInternational) {
-    tip = `Adding international exposure (like MOTNAS) is a wise long-term decision. It reduces India-specific risks and gives you access to global innovation. Continue SIPs and stay invested for at least 7–10 years to benefit from both equity growth and currency diversification.`;
-  } 
-  else if (hasNifty) {
-    tip = `Index investing through Nifty-related instruments is one of the most effective long-term strategies. The real wealth is created by staying invested consistently for 10+ years across multiple market cycles. Keep your SIPs running.`;
-  } 
-  else {
-    tip = `As a long-term investor, remember these three principles: <strong>Own quality businesses</strong>, <strong>Buy at reasonable valuations</strong>, and <strong>Give time for compounding</strong>. Avoid frequent changes in your portfolio. The biggest returns usually come from staying invested for 8–12 years.`;
+  let tips = [];
+
+  // === DYNAMIC TIP GENERATION ===
+
+  // 1. Diversification Check
+  if (!hasGoldSilver && !hasInternational) {
+    tips.push("Your portfolio appears heavily concentrated in Indian equities. As a long-term investor, consider gradually adding 10-15% allocation in gold/silver ETFs and 10-20% in international funds (like MOTNAS) to reduce India-specific risks over the next 7–10 years.");
   }
 
-  tipContainer.innerHTML = `<p>${tip}</p>`;
+  // 2. Gold/Silver Allocation
+  if (hasGoldSilver) {
+    tips.push("Gold and silver ETFs act as excellent portfolio stabilizers during high inflation or global uncertainty. For long-term investors, maintaining 8-12% in precious metals has historically improved risk-adjusted returns over 10+ year periods.");
+  }
+
+  // 3. International Exposure
+  if (hasInternational) {
+    tips.push("International exposure is a smart long-term move. It gives you access to global innovation and acts as a currency hedge. Continue SIPs in these for at least 8–10 years to fully benefit from geographical diversification.");
+  }
+
+  // 4. Sector Concentration Warning
+  if (hasTech && !hasBanking && !hasGoldSilver) {
+    tips.push("High allocation to technology can deliver strong compounding over long periods, but it also increases volatility. Consider balancing it with stable sectors like banking or consumption for smoother long-term wealth creation.");
+  }
+
+  // 5. Banking/Financials View
+  if (hasBanking) {
+    tips.push("Banking stocks are core to India's long-term growth story. However, they are cyclical. Maintain a 7+ year investment horizon and avoid reacting to short-term news around NPAs or interest rates.");
+  }
+
+  // 6. Index vs Active
+  if (hasNifty && watchlist.length > 3) {
+    tips.push("You're combining index investing with individual stocks. This is a balanced approach. Keep your core allocation in broad indices (like Nifty ETFs) and use individual stocks only for high-conviction ideas with a 8–12 year view.");
+  }
+
+  // 7. Mid & Small Cap Caution
+  if (hasMidSmall) {
+    tips.push("Mid and small-cap stocks can generate exceptional long-term returns, but they are also more volatile. As a long-term investor, ensure you have the emotional discipline to hold through 30-50% drawdowns, which are common in this segment.");
+  }
+
+  // 8. General Long-term Principle (Always shown)
+  tips.push("Remember: **Time in the market beats timing the market**. The biggest wealth is usually created by staying invested in quality businesses through multiple market cycles rather than trying to predict short-term movements.");
+
+  // Final Output
+  let html = "<ul class='space-y-3'>";
+  tips.forEach(tip => {
+    html += `<li class="flex gap-2"><span class="text-yellow-400 mt-1">•</span> <span>${tip}</span></li>`;
+  });
+  html += "</ul>";
+
+  tipContainer.innerHTML = html;
 }
 
     function renderWatchlist() {
@@ -535,10 +572,11 @@ function hideRawResponse() {
           </div>
         `;
         container.appendChild(div);
-        generateTipForTheDay();
+        
       });
 
       localStorage.setItem('watchlist', JSON.stringify(watchlist));
+      generateTipForTheDay();
     }
 
     function removeFromWatchlist(index, e) {
