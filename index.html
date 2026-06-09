@@ -693,29 +693,36 @@ async function showHistoricalChart(scrip, e) {
       };
       reader.readAsText(file);
     }
-
-    function loadSavedWatchlist() {
-      const saved = localStorage.getItem('watchlist');
-      if (saved) {
-        watchlist = JSON.parse(saved);
-        renderWatchlist();
-        generateTipForTheDay();
-      }
-    }
+    
+function loadSavedWatchlist() {
+  const saved = localStorage.getItem('watchlist');
+  if (saved) {
+    watchlist = JSON.parse(saved);
+    renderWatchlist();           // This already calls generateTipForTheDay()
+  } else {
+    // If nothing is saved, still generate the default message
+    generateTipForTheDay();
+  }
+}
 
     
  // ==================== INITIALIZE ====================
     window.onload = function() {
       renderEquityTable();
-      renderCommodityTable();
-      createGoldSilverChart();
-      createRatioChart();
+    renderCommodityTable();
+    createGoldSilverChart();
+    createRatioChart();
 
-      // Analytics
-      loadScripDropdown();
-      loadSavedWatchlist();
+    // Analytics
+    loadScripDropdown();
+    loadSavedWatchlist();
 
-      showTab(0);
+    // Force generate tip after everything is loaded
+    setTimeout(() => {
+      generateTipForTheDay();
+    }, 100);
+
+    showTab(0);
     };
   </script>
 </body>
