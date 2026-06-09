@@ -180,6 +180,7 @@
     <!-- ==================== ANALYTICS TAB ==================== -->
    <!-- ==================== ANALYTICS TAB ==================== -->
 <div id="tab-2-content" class="hidden">
+  
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     
     <!-- Watchlist -->
@@ -199,7 +200,7 @@
       <!-- Add Scrip -->
       <div class="flex gap-2 mb-4">
         <select id="scripSelect" class="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-sm">
-          <!-- Options will be populated by JS -->
+          <!-- Populated by JS -->
         </select>
         <button onclick="addToWatchlist()" class="bg-emerald-600 hover:bg-emerald-700 px-4 rounded-lg text-sm">Add</button>
       </div>
@@ -208,49 +209,85 @@
       <div id="watchlist" class="space-y-2 max-h-[400px] overflow-auto"></div>
     </div>
 
-   <!-- Chart Area -->
+    <!-- Chart Area -->
     <div class="lg:col-span-2 bg-zinc-900 rounded-2xl p-6">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-3">
         <h3 id="chart-title" class="text-xl font-semibold">Select a scrip to view chart</h3>
         
         <!-- Time Period Selector -->
         <div id="period-selector" class="hidden flex gap-2">
-          <button onclick="changeTimePeriod(1)" 
-                  class="period-btn px-4 py-1.5 text-sm rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-600">1Y</button>
-          <button onclick="changeTimePeriod(3)" 
-                  class="period-btn px-4 py-1.5 text-sm rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-600">3Y</button>
-          <button onclick="changeTimePeriod(5)" 
-                  class="period-btn px-4 py-1.5 text-sm rounded-lg bg-emerald-600 text-white">5Y</button>
-          <button onclick="changeTimePeriod(10)" 
-                  class="period-btn px-4 py-1.5 text-sm rounded-lg bg-emerald-600 text-white">10Y</button>
+          <button onclick="changeTimePeriod(1)" class="period-btn px-4 py-1.5 text-sm rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-600">1Y</button>
+          <button onclick="changeTimePeriod(3)" class="period-btn px-4 py-1.5 text-sm rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-600">3Y</button>
+          <button onclick="changeTimePeriod(5)" class="period-btn px-4 py-1.5 text-sm rounded-lg bg-emerald-600 text-white">5Y</button>
+          <button onclick="changeTimePeriod(10)" class="period-btn px-4 py-1.5 text-sm rounded-lg bg-emerald-600 text-white">10Y</button>
         </div>
       </div>
 
       <canvas id="historicalChart" style="max-height: 340px;"></canvas>
       <p id="chart-note" class="text-xs text-zinc-500 mt-2">Historical data from ICICI Direct Breeze API</p>
     </div>
+  </div>
 
-    <div id="tab-2-content" class="hidden">
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    
-    <!-- Watchlist -->
-    <div class="lg:col-span-1 bg-zinc-900 rounded-2xl p-6">
-      <!-- Keep your existing Watchlist code here -->
-      ...
+  <!-- ==================== FUNDAMENTAL ANALYSIS ==================== -->
+  <div class="mt-8 bg-zinc-900 rounded-2xl p-6 border border-zinc-700">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-xl font-semibold flex items-center gap-2">
+        <i class="fas fa-chart-bar text-emerald-400"></i> 
+        Fundamental Analysis
+      </h3>
+      <button onclick="analyzeScrip()" 
+              class="bg-emerald-600 hover:bg-emerald-700 px-5 py-2 rounded-lg text-sm font-medium">
+        Analyze Selected Scrip
+      </button>
     </div>
 
-    <!-- Chart Area (Keep existing) -->
-    <div class="lg:col-span-2 bg-zinc-900 rounded-2xl p-6">
-      <!-- Keep your existing Chart + Time Period code -->
-      ...
+    <div class="mb-4">
+      <select id="analyzeSelect" class="bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm w-full md:w-1/2">
+        <!-- Populated by JS -->
+      </select>
+    </div>
+
+    <!-- Analysis Result -->
+    <div id="analysis-result" class="hidden bg-zinc-950 rounded-xl p-6 border border-zinc-800">
+      <h4 id="analysis-title" class="text-lg font-semibold mb-4"></h4>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div>
+          <p class="text-xs text-zinc-400">5-Year CAGR</p>
+          <p id="cagr-value" class="text-2xl font-bold text-emerald-400"></p>
+        </div>
+        <div>
+          <p class="text-xs text-zinc-400">Max Drawdown</p>
+          <p id="drawdown-value" class="text-2xl font-bold text-red-400"></p>
+        </div>
+        <div>
+          <p class="text-xs text-zinc-400">Current vs All-time High</p>
+          <p id="ath-value" class="text-2xl font-bold"></p>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <h5 class="font-medium text-emerald-400 mb-1">Long-term Trend</h5>
+          <p id="trend-text" class="text-sm text-zinc-300"></p>
+        </div>
+        <div>
+          <h5 class="font-medium text-emerald-400 mb-1">Valuation View</h5>
+          <p id="valuation-text" class="text-sm text-zinc-300"></p>
+        </div>
+        <div>
+          <h5 class="font-medium text-emerald-400 mb-1">Accumulation Zone</h5>
+          <p id="accumulation-text" class="text-sm text-zinc-300"></p>
+        </div>
+        <div>
+          <h5 class="font-medium text-emerald-400 mb-1">Key Takeaway for Long-term Investors</h5>
+          <p id="takeaway-text" class="text-sm text-zinc-300"></p>
+        </div>
+      </div>
     </div>
   </div>
+
 </div>
-
-
-  </div>
-</div>
-
 <!-- ==================== NEW: ANALYZE SCRIP ==================== -->
   <div class="mt-8 bg-zinc-900 rounded-2xl p-6 border border-zinc-700">
     <div class="flex items-center justify-between mb-4">
