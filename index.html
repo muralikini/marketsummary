@@ -217,6 +217,26 @@
       <p id="chart-note" class="text-xs text-zinc-500 mt-2">Historical data </p>
     </div>
 
+    <!-- Chart Area -->
+<div class="lg:col-span-2 bg-zinc-900 rounded-2xl p-6">
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-3">
+    <h3 id="chart-title" class="text-xl font-semibold">Select a scrip to view chart</h3>
+    
+    <!-- Time Period Selector -->
+    <div id="period-selector" class="hidden flex gap-2">
+      <button onclick="changeTimePeriod(1)" 
+              class="period-btn px-4 py-1.5 text-sm rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-600">1Y</button>
+      <button onclick="changeTimePeriod(3)" 
+              class="period-btn px-4 py-1.5 text-sm rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-600">3Y</button>
+      <button onclick="changeTimePeriod(5)" 
+              class="period-btn px-4 py-1.5 text-sm rounded-lg bg-emerald-600 text-white">5Y</button>
+    </div>
+  </div>
+
+  <canvas id="historicalChart" style="max-height: 340px;"></canvas>
+  <p id="chart-note" class="text-xs text-zinc-500 mt-2">Historical data from ICICI Direct Breeze API</p>
+</div>
+
     <!-- ==================== TIP FOR THE DAY ==================== -->
 <div class="mt-8 bg-zinc-900 rounded-2xl p-6 border border-zinc-700">
   <div class="flex items-center gap-3 mb-4">
@@ -464,7 +484,7 @@ function hideRawResponse() {
 
       watchlist.push(scrip);
       renderWatchlist();
-      generateTipForTheDay();
+      //generateTipForTheDay();
       select.value = '';
     }
 
@@ -585,13 +605,24 @@ function hideRawResponse() {
       renderWatchlist();
     }
 
-    let historicalChartInstance = null;
+    
+
+let historicalChartInstance = null;
+let currentScrip = null;
+let currentPeriod = 5; // Default 5 years
 
 async function showHistoricalChart(scrip, e) {
-  e.stopImmediatePropagation();
+  if (e) e.stopImmediatePropagation();
+
+  currentScrip = scrip;
+  currentPeriod = 5; // Reset to 5Y when new scrip is selected
 
   const ctx = document.getElementById('historicalChart');
   const title = document.getElementById('chart-title');
+  const periodSelector = document.getElementById('period-selector');
+
+  // Show period buttons
+  periodSelector.classList.remove('hidden');
 
   // Destroy old chart
   if (historicalChartInstance) {
@@ -600,16 +631,20 @@ async function showHistoricalChart(scrip, e) {
   }
 
   title.textContent = `${scrip} - Historical Performance`;
+  ctx.style.opacity = "0.4";
 
-  // Show loading
-  ctx.style.opacity = "0.5";
+  await fetchAndRenderChart(scrip, currentPeriod);
+}
+
+async function fetchAndRenderChart(scrip, years) {
+  const ctx = document.getElementById('historicalChart');
+  ctx.style.opacity = "0.4";
 
   try {
     const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
 
-    // Get last 5 years
     const toDate = new Date().toISOString().split('T')[0] + "T06:00:00.000Z";
-    const fromDate = new Date(new Date().setFullYear(new Date().getFullYear() - 5))
+    const fromDate = new Date(new Date().setFullYear(new Date().getFullYear() - years))
                       .toISOString().split('T')[0] + "T06:00:00.000Z";
 
     const response = await fetch(`${BACKEND_URL}/api/historical`, {
@@ -629,14 +664,19 @@ async function showHistoricalChart(scrip, e) {
     const result = await response.json();
 
     if (!result.success || !result.data || result.data.length === 0) {
-      throw new Error("No historical data available for this scrip");
+      throw new Error("No historical data available");
     }
 
-    // Prepare data for chart
+    // Prepare chart data
     const labels = result.data.map(item => item.datetime.split('T')[0]);
     const prices = result.data.map(item => parseFloat(item.close));
 
-    // Create chart
+    // Destroy previous chart if exists
+    if (historicalChartInstance) {
+      historicalChartInstance.destroy();
+    }
+
+    // Create new chart with better styling
     historicalChartInstance = new Chart(ctx, {
       type: 'line',
       data: {
@@ -645,21 +685,71 @@ async function showHistoricalChart(scrip, e) {
           label: `${scrip} Close Price`,
           data: prices,
           borderColor: '#00d4ff',
-          tension: 0.1
+          backgroundColor: 'rgba(0, 212, 255, 0.08)',
+          borderWidth: 2.5,
+          tension: 0.2,
+          fill: true,
+          pointRadius: 0,
+          pointHoverRadius: 4
         }]
       },
       options: {
         responsive: true,
-        plugins: { legend: { display: false } }
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            backgroundColor: '#18181b',
+            titleColor: '#fff',
+            bodyColor: '#fff'
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: '#27272a', lineWidth: 0.5 },
+            ticks: { color: '#71717a', maxTicksLimit: 8 }
+          },
+          y: {
+            grid: { color: '#27272a', lineWidth: 0.5 },
+            ticks: { color: '#71717a' }
+          }
+        },
+        interaction: {
+          mode: 'nearest',
+          axis: 'x',
+          intersect: false
+        }
       }
     });
 
   } catch (error) {
     console.error(error);
-    alert("Error loading historical data: " + error.message);
+    alert("Error: " + error.message);
   } finally {
     ctx.style.opacity = "1";
   }
+}
+
+// Function to change time period
+function changeTimePeriod(years) {
+  if (!currentScrip) return;
+
+  currentPeriod = years;
+
+  // Update active button style
+  document.querySelectorAll('.period-btn').forEach(btn => {
+    btn.classList.remove('bg-emerald-600', 'text-white');
+    btn.classList.add('bg-zinc-800', 'hover:bg-zinc-700');
+  });
+
+  // Highlight selected button
+  event.target.classList.remove('bg-zinc-800', 'hover:bg-zinc-700');
+  event.target.classList.add('bg-emerald-600', 'text-white');
+
+  // Re-fetch data with new period
+  fetchAndRenderChart(currentScrip, years);
 }
     
     function saveWatchlist() {
