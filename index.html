@@ -157,10 +157,20 @@
             </div>
           </div>
 
-          <div class="flex gap-2 mb-4">
-            <select id="scripSelect" class="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-sm"></select>
-            <button onclick="addToWatchlist()" class="bg-emerald-600 hover:bg-emerald-700 px-4 rounded-lg text-sm">Add</button>
+          <!-- Add Scrip -->
+          <div class="flex gap-2 mb-4 items-center">
+            <select id="scripSelect" 
+                        class="flex-1 max-w-[280px] min-w-0 bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-sm">
+              <!-- Options populated by JS -->
+            </select>
+            
+            <button onclick="addToWatchlist()" 
+                    class="bg-emerald-600 hover:bg-emerald-700 px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap">
+              Add
+            </button>
           </div>
+
+          // Add buttons for saving, exporting, and importing watchlist
 
           <div id="watchlist" class="space-y-2 max-h-[400px] overflow-auto"></div>
         </div>
