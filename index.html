@@ -693,7 +693,7 @@ async function showHistoricalChart(scrip, e) {
       };
       reader.readAsText(file);
     }
-    
+
 function loadSavedWatchlist() {
   const saved = localStorage.getItem('watchlist');
   if (saved) {
@@ -720,7 +720,7 @@ function loadSavedWatchlist() {
     // Force generate tip after everything is loaded
     setTimeout(() => {
       generateTipForTheDay();
-    }, 100);
+    }, 300);
 
     showTab(0);
     };
