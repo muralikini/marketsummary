@@ -204,7 +204,7 @@
               <p class="text-sm text-zinc-400">Nifty Midcap 100</p>
               <p id="nifty-midcap-price" class="text-2xl font-bold mt-1">Loading...</p>
             </div>
-            <button onclick="fetchLiveNiftyPrice('NIFTYMC100', 'nifty-midcap-price')" 
+            <button onclick="fetchLiveNiftyPrice('NIFTYMIDCAP100', 'nifty-midcap-price')" 
                     class="text-emerald-400 hover:text-emerald-300">
               <i class="fas fa-sync-alt"></i>
             </button>
@@ -1022,7 +1022,7 @@ function refreshAllLivePrices() {
     fetchYahooIndex('^IXIC', 'nasdaq-price');   // ← Fixed
     fetchYahooIndex('^DJI', 'dow-price');       // ← Fixed
     fetchLiveNiftyPrice('NIFTY', 'nifty50-price');
-    fetchLiveNiftyPrice('NIFTYMC100', 'nifty-midcap-price');
+    fetchLiveNiftyPrice('NIFTYMIDCAP100', 'nifty-midcap-price');
   }, 1500);
 
   showTab(0);
