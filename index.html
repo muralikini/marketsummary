@@ -119,69 +119,70 @@
             </div>
           </div>
 
-          <!-- Gold & Silver -->
-          <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
-            <div class="flex justify-between items-start">
-              <div>
-                <p class="text-sm text-zinc-400">Gold (per gram)</p>
-                <p id="gold-price" class="text-2xl font-bold mt-1">Loading...</p>
-              </div>
-              <button onclick="fetchGoldSilverPrice('XAU', 'gold-price')" class="text-emerald-400 hover:text-emerald-300">
-                <i class="fas fa-sync-alt"></i>
-              </button>
-            </div>
-          </div>
+          <!-- Gold -->
+<div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+  <div class="flex justify-between items-start">
+    <div>
+      <p class="text-sm text-zinc-400">Gold (USD/oz)</p>
+      <p id="gold-price" class="text-2xl font-bold mt-1">Loading...</p>
+    </div>
+    <button onclick="fetchGoldSilverPrice('XAU', 'gold-price')" class="text-emerald-400 hover:text-emerald-300">
+      <i class="fas fa-sync-alt"></i>
+    </button>
+  </div>
+</div>
 
-          <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
-            <div class="flex justify-between items-start">
-              <div>
-                <p class="text-sm text-zinc-400">Silver (per gram)</p>
-                <p id="silver-price" class="text-2xl font-bold mt-1">Loading...</p>
-              </div>
-              <button onclick="fetchGoldSilverPrice('XAG', 'silver-price')" class="text-emerald-400 hover:text-emerald-300">
-                <i class="fas fa-sync-alt"></i>
-              </button>
-            </div>
-          </div>
+<!-- Silver -->
+<div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+  <div class="flex justify-between items-start">
+    <div>
+      <p class="text-sm text-zinc-400">Silver (USD/oz)</p>
+      <p id="silver-price" class="text-2xl font-bold mt-1">Loading...</p>
+    </div>
+    <button onclick="fetchGoldSilverPrice('XAG', 'silver-price')" class="text-emerald-400 hover:text-emerald-300">
+      <i class="fas fa-sync-alt"></i>
+    </button>
+  </div>
+</div>
 
-          <!-- Crude Oil -->
-          <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
-            <div class="flex justify-between items-start">
-              <div>
-                <p class="text-sm text-zinc-400">Crude Oil (WTI)</p>
-                <p id="crude-price" class="text-2xl font-bold mt-1">Loading...</p>
-              </div>
-              <button onclick="fetchCrudeOilPrice()" class="text-emerald-400 hover:text-emerald-300">
-                <i class="fas fa-sync-alt"></i>
-              </button>
-            </div>
-          </div>
+<!-- Crude Oil -->
+<div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+  <div class="flex justify-between items-start">
+    <div>
+      <p class="text-sm text-zinc-400">Crude Oil (WTI)</p>
+      <p id="crude-price" class="text-2xl font-bold mt-1">Loading...</p>
+    </div>
+    <button onclick="fetchCrudeOilPrice()" class="text-emerald-400 hover:text-emerald-300">
+      <i class="fas fa-sync-alt"></i>
+    </button>
+  </div>
+</div>
 
-          <!-- NASDAQ -->
-          <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
-            <div class="flex justify-between items-start">
-              <div>
-                <p class="text-sm text-zinc-400">NASDAQ</p>
-                <p id="nasdaq-price" class="text-2xl font-bold mt-1">Loading...</p>
-              </div>
-              <button onclick="fetchIndexPrice('^IXIC', 'nasdaq-price')" class="text-emerald-400 hover:text-emerald-300">
-                <i class="fas fa-sync-alt"></i>
-              </button>
-            </div>
-          </div>
+<!-- NASDAQ -->
+<div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+  <div class="flex justify-between items-start">
+    <div>
+      <p class="text-sm text-zinc-400">NASDAQ</p>
+      <p id="nasdaq-price" class="text-2xl font-bold mt-1">Loading...</p>
+    </div>
+    <button onclick="fetchYahooIndex('^IXIC', 'nasdaq-price')" class="text-emerald-400 hover:text-emerald-300">
+      <i class="fas fa-sync-alt"></i>
+    </button>
+  </div>
+</div>
 
-          <!-- DOW Jones -->
-          <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
-            <div class="flex justify-between items-start">
-              <div>
-                <p class="text-sm text-zinc-400">DOW Jones</p>
-                <p id="dow-price" class="text-2xl font-bold mt-1">Loading...</p>
-              </div>
-              <button onclick="fetchIndexPrice('^DJI', 'dow-price')" class="text-emerald-400 hover:text-emerald-300">
-                <i class="fas fa-sync-alt"></i>
-              </button>
-            </div>
-          </div>
+<!-- DOW Jones -->
+<div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+  <div class="flex justify-between items-start">
+    <div>
+      <p class="text-sm text-zinc-400">DOW Jones</p>
+      <p id="dow-price" class="text-2xl font-bold mt-1">Loading...</p>
+    </div>
+    <button onclick="fetchYahooIndex('^DJI', 'dow-price')" class="text-emerald-400 hover:text-emerald-300">
+      <i class="fas fa-sync-alt"></i>
+    </button>
+  </div>
+</div>
 
           <!-- NIFTY 50 -->
           <div class="live-card bg-zinc-950 border border-zinc-800 rounded-xl p-4">
@@ -231,17 +232,7 @@
         </div>
       </div>
 
-      <!-- Gold & Silver Charts -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div class="bg-zinc-900 rounded-2xl p-6">
-          <h3 class="font-semibold mb-4">Gold vs Silver Price (₹ per gram)</h3>
-          <canvas id="goldSilverChart" height="120"></canvas>
-        </div>
-        <div class="bg-zinc-900 rounded-2xl p-6">
-          <h3 class="font-semibold mb-4">Gold : Silver Ratio Trend</h3>
-          <canvas id="ratioChart" height="120"></canvas>
-        </div>
-      </div>
+      
     </div>
 
     <!-- ==================== HOLDINGS TAB ==================== -->
@@ -869,36 +860,65 @@
       }
     }
 
-    async function fetchGoldSilverPrice(symbol, elementId) {
-      const el = document.getElementById(elementId);
-      el.innerHTML = `<span class="text-sm text-zinc-400">Updating...</span>`;
+    / Gold & Silver - Show raw API value (as you want)
+async function fetchGoldSilverPrice(symbol, elementId) {
+  const el = document.getElementById(elementId);
+  el.innerHTML = `<span class="text-sm text-zinc-400">Updating...</span>`;
 
-      try {
-        const res = await fetch(`https://api.gold-api.com/price/${symbol}`);
-        const data = await res.json();
-        if (data && data.price) {
-          const pricePerGram = (data.price / 31.1035).toFixed(2);
-          el.innerHTML = `₹${parseFloat(pricePerGram).toLocaleString('en-IN')}`;
-        } else {
-          el.innerHTML = "N/A";
-        }
-      } catch {
-        el.innerHTML = "Error";
-      }
+  try {
+    const res = await fetch(`https://api.gold-api.com/price/${symbol}`);
+    const data = await res.json();
+
+    if (data && data.price) {
+      el.innerHTML = `$${parseFloat(data.price).toFixed(2)}`;
+    } else {
+      el.innerHTML = "N/A";
     }
+  } catch (error) {
+    el.innerHTML = "Error";
+  }
+}
 
-    async function fetchCrudeOilPrice() {
-      const el = document.getElementById('crude-price');
-      el.innerHTML = `<span class="text-sm text-zinc-400">Updating...</span>`;
+    // Crude Oil
+async function fetchCrudeOilPrice() {
+  const el = document.getElementById('crude-price');
+  el.innerHTML = `<span class="text-sm text-zinc-400">Updating...</span>`;
 
-      try {
-        const res = await fetch('https://api.gold-api.com/price/CL');
-        const data = await res.json();
-        el.innerHTML = (data && data.price) ? `$${parseFloat(data.price).toFixed(2)}` : "N/A";
-      } catch {
-        el.innerHTML = "Error";
-      }
+  try {
+    const res = await fetch('https://api.gold-api.com/price/CL');
+    const data = await res.json();
+
+    if (data && data.price) {
+      el.innerHTML = `$${parseFloat(data.price).toFixed(2)}`;
+    } else {
+      el.innerHTML = "N/A";
     }
+  } catch {
+    el.innerHTML = "Error";
+  }
+}
+
+// NASDAQ and DOW using Yahoo Finance
+async function fetchYahooIndex(symbol, elementId) {
+  const el = document.getElementById(elementId);
+  el.innerHTML = `<span class="text-sm text-zinc-400">Updating...</span>`;
+
+  try {
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
+
+    if (price) {
+      el.innerHTML = price.toLocaleString('en-US');
+    } else {
+      el.innerHTML = "N/A";
+    }
+  } catch {
+    el.innerHTML = "Error";
+  }
+}
 
     async function fetchIndexPrice(symbol, elementId) {
       const el = document.getElementById(elementId);
@@ -925,16 +945,16 @@
     }
 
     function refreshAllLivePrices() {
-      fetchCryptoPrice('bitcoin', 'btc-price');
-      fetchCryptoPrice('ethereum', 'eth-price');
-      fetchCryptoPrice('tether', 'usdt-price');
-      fetchCryptoPrice('usd-coin', 'usdc-price');
-      fetchGoldSilverPrice('XAU', 'gold-price');
-      fetchGoldSilverPrice('XAG', 'silver-price');
-      fetchCrudeOilPrice();
-      fetchIndexPrice('^IXIC', 'nasdaq-price');
-      fetchIndexPrice('^DJI', 'dow-price');
-    }
+  fetchCryptoPrice('bitcoin', 'btc-price');
+  fetchCryptoPrice('ethereum', 'eth-price');
+  fetchCryptoPrice('tether', 'usdt-price');
+  fetchCryptoPrice('usd-coin', 'usdc-price');
+  fetchGoldSilverPrice('XAU', 'gold-price');
+  fetchGoldSilverPrice('XAG', 'silver-price');
+  fetchCrudeOilPrice();
+  fetchYahooIndex('^IXIC', 'nasdaq-price');
+  fetchYahooIndex('^DJI', 'dow-price');
+}
 
     // ==================== INITIALIZE ====================
     window.onload = function() {
