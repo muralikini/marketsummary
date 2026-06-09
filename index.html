@@ -887,18 +887,50 @@
       }
     }
 
-    async function fetchCrudeOilPrice() {
-      const el = document.getElementById('crude-price');
-      el.innerHTML = `<span class="text-sm text-zinc-400">Updating...</span>`;
+   // NASDAQ
+async function fetchYahooIndex(symbol, elementId) {
+  const el = document.getElementById(elementId);
+  el.innerHTML = `<span class="text-sm text-zinc-400">Updating...</span>`;
 
-      try {
-        const res = await fetch('https://api.gold-api.com/price/CL');
-        const data = await res.json();
-        el.innerHTML = (data && data.price) ? `$${parseFloat(data.price).toFixed(2)}` : "N/A";
-      } catch {
-        el.innerHTML = "Error";
-      }
+  try {
+    const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
+    let endpoint = "";
+
+    if (symbol === "^IXIC") endpoint = "/api/market/nasdaq";
+    else if (symbol === "^DJI") endpoint = "/api/market/dow";
+
+    const res = await fetch(`${BACKEND_URL}${endpoint}`);
+    const data = await res.json();
+
+    if (data.success && data.price) {
+      el.innerHTML = data.price.toLocaleString('en-US');
+    } else {
+      el.innerHTML = "N/A";
     }
+  } catch {
+    el.innerHTML = "Error";
+  }
+}
+
+// Crude Oil
+async function fetchCrudeOilPrice() {
+  const el = document.getElementById('crude-price');
+  el.innerHTML = `<span class="text-sm text-zinc-400">Updating...</span>`;
+
+  try {
+    const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
+    const res = await fetch(`${BACKEND_URL}/api/market/crude`);
+    const data = await res.json();
+
+    if (data.success && data.price) {
+      el.innerHTML = `$${data.price}`;
+    } else {
+      el.innerHTML = "N/A";
+    }
+  } catch {
+    el.innerHTML = "Error";
+  }
+}
 
     async function fetchIndexPrice(symbol, elementId) {
       const el = document.getElementById(elementId);
@@ -932,8 +964,8 @@
       fetchGoldSilverPrice('XAU', 'gold-price');
       fetchGoldSilverPrice('XAG', 'silver-price');
       fetchCrudeOilPrice();
-      fetchIndexPrice('^IXIC', 'nasdaq-price');
-      fetchIndexPrice('^DJI', 'dow-price');
+      fetchYahooIndex('^IXIC', 'nasdaq-price');
+      fetchYahooIndex('^DJI', 'dow-price');
     }
 
     // ==================== INITIALIZE ====================
