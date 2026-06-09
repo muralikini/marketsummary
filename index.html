@@ -32,8 +32,6 @@
 
     <!-- ==================== DASHBOARD TAB ==================== -->
     <div id="tab-0-content">
-      
-      <!-- Summary Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div class="metric-card bg-zinc-900 p-5 rounded-2xl">
           <p class="text-sm text-zinc-400">NIFTY 50 (Avg 10Y)</p>
@@ -54,11 +52,9 @@
         </div>
       </div>
 
-      <!-- Equity Returns Table -->
       <div class="bg-zinc-900 rounded-2xl p-6 mb-8">
         <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
-          <i class="fas fa-chart-line text-emerald-400"></i> 
-          Equity &amp; ETF Yearly Returns
+          <i class="fas fa-chart-line text-emerald-400"></i> Equity & ETF Yearly Returns
         </h3>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
@@ -74,287 +70,178 @@
         </div>
       </div>
 
-      <!-- Gold & Silver Performance -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <!-- Gold Silver Price Chart -->
         <div class="bg-zinc-900 rounded-2xl p-6">
           <h3 class="font-semibold mb-4">Gold vs Silver Price (₹ per gram)</h3>
           <canvas id="goldSilverChart" height="120"></canvas>
         </div>
-
-        <!-- Gold Silver Ratio -->
         <div class="bg-zinc-900 rounded-2xl p-6">
           <h3 class="font-semibold mb-4">Gold : Silver Ratio Trend</h3>
           <canvas id="ratioChart" height="120"></canvas>
         </div>
       </div>
-      <!-- Essential Commodities / Inflation Data (Moved from Analytics) -->
-        <div class="bg-zinc-900 rounded-2xl p-6 mt-8">
+
+      <div class="bg-zinc-900 rounded-2xl p-6">
         <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
-            <i class="fas fa-shopping-basket text-orange-400"></i>
-            Essential Commodities Price Trend (₹)
+          <i class="fas fa-shopping-basket text-orange-400"></i> Essential Commodities Price Trend (₹)
         </h3>
         <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+          <table class="w-full text-sm">
             <thead>
-                <tr class="border-b border-zinc-700 text-zinc-400">
+              <tr class="border-b border-zinc-700 text-zinc-400">
                 <th class="text-left py-3">Year</th>
-                <th>Rice (₹/kg)</th>
-                <th>Wheat (₹/kg)</th>
-                <th>Milk (₹/L)</th>
-                <th>Petrol (₹/L)</th>
-                <th>Diesel (₹/L)</th>
-                <th>LPG (₹)</th>
-                </tr>
+                <th>Rice (₹/kg)</th><th>Wheat (₹/kg)</th><th>Milk (₹/L)</th>
+                <th>Petrol (₹/L)</th><th>Diesel (₹/L)</th><th>LPG (₹)</th>
+              </tr>
             </thead>
             <tbody id="commodity-table"></tbody>
-            </table>
+          </table>
         </div>
         <p class="text-xs text-zinc-500 mt-3">Data from your Excel sheet • Daily Needs Price Chart</p>
-        </div>
-            
-
+      </div>
     </div>
 
-    <!-- HOLDINGS TAB - ENHANCED -->
+    <!-- ==================== HOLDINGS TAB ==================== -->
     <div id="tab-1-content" class="hidden">
       <div class="bg-zinc-900 rounded-2xl p-6">
         <h3 class="text-2xl font-semibold mb-4">Holdings from ICICI Direct</h3>
 
-        <!-- Credential Inputs -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div>
             <label class="text-sm text-zinc-400">API Key</label>
-            <input id="apiKey" type="text" value="59E06m90zx8750d33n1g9U9311786E0I" 
-                   class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm">
+            <input id="apiKey" type="text" value="59E06m90zx8750d33n1g9U9311786E0I" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm">
           </div>
           <div>
             <label class="text-sm text-zinc-400">Secret Key</label>
-            <input id="secretKey" type="password" value="2km$2C35`%218g7869^wRP28854890Y6" 
-                   class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm">
+            <input id="secretKey" type="password" value="2km$2C35`%218g7869^wRP28854890Y6" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm">
           </div>
           <div>
             <label class="text-sm text-zinc-400">Session Token</label>
-            <input id="sessionToken" type="text" placeholder="Paste your Session Token here" 
-                   class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm">
+            <input id="sessionToken" type="text" placeholder="Paste your Session Token here" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm">
           </div>
         </div>
 
-        <button onclick="fetchBreezeHoldings()" 
-                class="bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-xl font-medium mb-6 flex items-center gap-2">
+        <button onclick="fetchBreezeHoldings()" class="bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-xl font-medium mb-6 flex items-center gap-2">
           <i class="fas fa-sync-alt"></i> Fetch Holdings from ICICI Direct
         </button>
 
-        <!-- Holdings Table -->
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
               <tr class="border-b border-zinc-700 text-zinc-400">
                 <th class="text-left py-3">Symbol</th>
-                <th>Qty</th>
-                <th>Avg Price</th>
-                <th>LTP</th>
-                <th>Value (₹)</th>
-                <th>P&amp;L</th>
+                <th>Qty</th><th>Avg Price</th><th>LTP</th><th>Value (₹)</th><th>P&amp;L</th>
               </tr>
             </thead>
-            <tbody id="holdings-table">
-              <!-- Populated by JavaScript -->
-            </tbody>
+            <tbody id="holdings-table"></tbody>
           </table>
         </div>
-        <p class="text-xs text-amber-400 mt-4">Note: Real integration requires a backend for security. Current version shows demo + structure.</p>
       </div>
-    </div>
-
-    <div id="raw-response" class="mt-6 hidden">
-    <div class="flex justify-between items-center mb-2">
-        <h4 class="font-semibold text-amber-400">Raw Response from ICICI Direct (Debug)</h4>
-        <button onclick="hideRawResponse()" 
-                class="text-xs px-3 py-1 bg-zinc-700 hover:bg-zinc-600 rounded">Hide</button>
-    </div>
-    <pre id="raw-json" 
-        class="bg-zinc-950 p-4 rounded-xl text-xs overflow-auto max-h-96 border border-zinc-700"></pre>
     </div>
 
     <!-- ==================== ANALYTICS TAB ==================== -->
-   <!-- ==================== ANALYTICS TAB ==================== -->
-<div id="tab-2-content" class="hidden">
-  
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    
-    <!-- Watchlist -->
-    <div class="lg:col-span-1 bg-zinc-900 rounded-2xl p-6">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-xl font-semibold">My Watchlist</h3>
-        <div class="flex gap-2">
-          <button onclick="saveWatchlist()" class="text-xs px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg">Save</button>
-          <button onclick="exportWatchlist()" class="text-xs px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg">Export</button>
-          <label class="text-xs px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg cursor-pointer">
-            Import
-            <input type="file" id="importFile" accept=".json" class="hidden" onchange="importWatchlist(event)">
-          </label>
-        </div>
-      </div>
-
-      <!-- Add Scrip -->
-      <div class="flex gap-2 mb-4">
-        <select id="scripSelect" class="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-sm">
-          <!-- Populated by JS -->
-        </select>
-        <button onclick="addToWatchlist()" class="bg-emerald-600 hover:bg-emerald-700 px-4 rounded-lg text-sm">Add</button>
-      </div>
-
-      <!-- Watchlist Items -->
-      <div id="watchlist" class="space-y-2 max-h-[400px] overflow-auto"></div>
-    </div>
-
-    <!-- Chart Area -->
-    <div class="lg:col-span-2 bg-zinc-900 rounded-2xl p-6">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-3">
-        <h3 id="chart-title" class="text-xl font-semibold">Select a scrip to view chart</h3>
+    <div id="tab-2-content" class="hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        <!-- Time Period Selector -->
-        <div id="period-selector" class="hidden flex gap-2">
-          <button onclick="changeTimePeriod(1)" class="period-btn px-4 py-1.5 text-sm rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-600">1Y</button>
-          <button onclick="changeTimePeriod(3)" class="period-btn px-4 py-1.5 text-sm rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-600">3Y</button>
-          <button onclick="changeTimePeriod(5)" class="period-btn px-4 py-1.5 text-sm rounded-lg bg-emerald-600 text-white">5Y</button>
-          <button onclick="changeTimePeriod(10)" class="period-btn px-4 py-1.5 text-sm rounded-lg bg-emerald-600 text-white">10Y</button>
+        <!-- Watchlist -->
+        <div class="lg:col-span-1 bg-zinc-900 rounded-2xl p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold">My Watchlist</h3>
+            <div class="flex gap-2">
+              <button onclick="saveWatchlist()" class="text-xs px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg">Save</button>
+              <button onclick="exportWatchlist()" class="text-xs px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg">Export</button>
+              <label class="text-xs px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg cursor-pointer">
+                Import
+                <input type="file" id="importFile" accept=".json" class="hidden" onchange="importWatchlist(event)">
+              </label>
+            </div>
+          </div>
+
+          <div class="flex gap-2 mb-4">
+            <select id="scripSelect" class="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-sm"></select>
+            <button onclick="addToWatchlist()" class="bg-emerald-600 hover:bg-emerald-700 px-4 rounded-lg text-sm">Add</button>
+          </div>
+
+          <div id="watchlist" class="space-y-2 max-h-[400px] overflow-auto"></div>
+        </div>
+
+        <!-- Chart Area -->
+        <div class="lg:col-span-2 bg-zinc-900 rounded-2xl p-6">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-3">
+            <h3 id="chart-title" class="text-xl font-semibold">Select a scrip to view chart</h3>
+            
+            <div id="period-selector" class="hidden flex gap-2">
+              <button onclick="changeTimePeriod(1)" class="period-btn px-4 py-1.5 text-sm rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-600">1Y</button>
+              <button onclick="changeTimePeriod(3)" class="period-btn px-4 py-1.5 text-sm rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-600">3Y</button>
+              <button onclick="changeTimePeriod(5)" class="period-btn px-4 py-1.5 text-sm rounded-lg bg-emerald-600 text-white">5Y</button>
+              <button onclick="changeTimePeriod(10)" class="period-btn px-4 py-1.5 text-sm rounded-lg bg-emerald-600 text-white">10Y</button>
+            </div>
+          </div>
+
+          <canvas id="historicalChart" style="max-height: 340px;"></canvas>
+          <p class="text-xs text-zinc-500 mt-2">Historical data from ICICI Direct Breeze API</p>
         </div>
       </div>
 
-      <canvas id="historicalChart" style="max-height: 340px;"></canvas>
-      <p id="chart-note" class="text-xs text-zinc-500 mt-2">Historical data from ICICI Direct Breeze API</p>
-    </div>
-  </div>
+      <!-- ==================== FUNDAMENTAL ANALYSIS ==================== -->
+      <div class="mt-8 bg-zinc-900 rounded-2xl p-6 border border-zinc-700">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-xl font-semibold flex items-center gap-2">
+            <i class="fas fa-chart-bar text-emerald-400"></i> Fundamental Analysis
+          </h3>
+          <button onclick="analyzeScrip()" class="bg-emerald-600 hover:bg-emerald-700 px-5 py-2 rounded-lg text-sm font-medium">
+            Analyze Selected Scrip
+          </button>
+        </div>
 
-  <!-- ==================== FUNDAMENTAL ANALYSIS ==================== -->
-  <div class="mt-8 bg-zinc-900 rounded-2xl p-6 border border-zinc-700">
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="text-xl font-semibold flex items-center gap-2">
-        <i class="fas fa-chart-bar text-emerald-400"></i> 
-        Fundamental Analysis
-      </h3>
-      <button onclick="analyzeScrip()" 
-              class="bg-emerald-600 hover:bg-emerald-700 px-5 py-2 rounded-lg text-sm font-medium">
-        Analyze Selected Scrip
-      </button>
-    </div>
+        <div class="mb-4">
+          <select id="analyzeSelect" class="bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm w-full md:w-1/2"></select>
+        </div>
 
-    <div class="mb-4">
-      <select id="analyzeSelect" class="bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm w-full md:w-1/2">
-        <!-- Populated by JS -->
-      </select>
-    </div>
+        <div id="analysis-result" class="hidden bg-zinc-950 rounded-xl p-6 border border-zinc-800">
+          <h4 id="analysis-title" class="text-lg font-semibold mb-4"></h4>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div>
+              <p class="text-xs text-zinc-400">5-Year CAGR</p>
+              <p id="cagr-value" class="text-2xl font-bold text-emerald-400"></p>
+            </div>
+            <div>
+              <p class="text-xs text-zinc-400">Max Drawdown</p>
+              <p id="drawdown-value" class="text-2xl font-bold text-red-400"></p>
+            </div>
+            <div>
+              <p class="text-xs text-zinc-400">Current vs All-time High</p>
+              <p id="ath-value" class="text-2xl font-bold"></p>
+            </div>
+          </div>
 
-    <!-- Analysis Result -->
-    <div id="analysis-result" class="hidden bg-zinc-950 rounded-xl p-6 border border-zinc-800">
-      <h4 id="analysis-title" class="text-lg font-semibold mb-4"></h4>
-      
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div>
-          <p class="text-xs text-zinc-400">5-Year CAGR</p>
-          <p id="cagr-value" class="text-2xl font-bold text-emerald-400"></p>
-        </div>
-        <div>
-          <p class="text-xs text-zinc-400">Max Drawdown</p>
-          <p id="drawdown-value" class="text-2xl font-bold text-red-400"></p>
-        </div>
-        <div>
-          <p class="text-xs text-zinc-400">Current vs All-time High</p>
-          <p id="ath-value" class="text-2xl font-bold"></p>
-        </div>
-      </div>
-
-      <div class="space-y-4">
-        <div>
-          <h5 class="font-medium text-emerald-400 mb-1">Long-term Trend</h5>
-          <p id="trend-text" class="text-sm text-zinc-300"></p>
-        </div>
-        <div>
-          <h5 class="font-medium text-emerald-400 mb-1">Valuation View</h5>
-          <p id="valuation-text" class="text-sm text-zinc-300"></p>
-        </div>
-        <div>
-          <h5 class="font-medium text-emerald-400 mb-1">Accumulation Zone</h5>
-          <p id="accumulation-text" class="text-sm text-zinc-300"></p>
-        </div>
-        <div>
-          <h5 class="font-medium text-emerald-400 mb-1">Key Takeaway for Long-term Investors</h5>
-          <p id="takeaway-text" class="text-sm text-zinc-300"></p>
+          <div class="space-y-4 text-sm">
+            <div>
+              <h5 class="font-medium text-emerald-400 mb-1">Long-term Trend</h5>
+              <p id="trend-text" class="text-zinc-300"></p>
+            </div>
+            <div>
+              <h5 class="font-medium text-emerald-400 mb-1">Valuation View</h5>
+              <p id="valuation-text" class="text-zinc-300"></p>
+            </div>
+            <div>
+              <h5 class="font-medium text-emerald-400 mb-1">Accumulation Zone</h5>
+              <p id="accumulation-text" class="text-zinc-300"></p>
+            </div>
+            <div>
+              <h5 class="font-medium text-emerald-400 mb-1">Key Takeaway for Long-term Investors</h5>
+              <p id="takeaway-text" class="text-zinc-300"></p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-
-</div>
-<!-- ==================== NEW: ANALYZE SCRIP ==================== -->
-  <div class="mt-8 bg-zinc-900 rounded-2xl p-6 border border-zinc-700">
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="text-xl font-semibold flex items-center gap-2">
-        <i class="fas fa-chart-bar text-emerald-400"></i> 
-        Fundamental Analysis
-      </h3>
-      <button onclick="analyzeScrip()" 
-              class="bg-emerald-600 hover:bg-emerald-700 px-5 py-2 rounded-lg text-sm font-medium">
-        Analyze Selected Scrip
-      </button>
-    </div>
-
-    <div class="mb-4">
-      <select id="analyzeSelect" class="bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm w-full md:w-1/2">
-        <!-- Populated by JS -->
-      </select>
-    </div>
-
-    <!-- Analysis Result -->
-    <div id="analysis-result" class="hidden bg-zinc-950 rounded-xl p-6 border border-zinc-800">
-      <h4 id="analysis-title" class="text-lg font-semibold mb-4"></h4>
-      
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div>
-          <p class="text-xs text-zinc-400">5-Year CAGR</p>
-          <p id="cagr-value" class="text-2xl font-bold text-emerald-400"></p>
-        </div>
-        <div>
-          <p class="text-xs text-zinc-400">Max Drawdown</p>
-          <p id="drawdown-value" class="text-2xl font-bold text-red-400"></p>
-        </div>
-        <div>
-          <p class="text-xs text-zinc-400">Current vs All-time High</p>
-          <p id="ath-value" class="text-2xl font-bold"></p>
-        </div>
-      </div>
-
-      <div class="space-y-4">
-        <div>
-          <h5 class="font-medium text-emerald-400 mb-1">Long-term Trend</h5>
-          <p id="trend-text" class="text-sm text-zinc-300"></p>
-        </div>
-        <div>
-          <h5 class="font-medium text-emerald-400 mb-1">Valuation View</h5>
-          <p id="valuation-text" class="text-sm text-zinc-300"></p>
-        </div>
-        <div>
-          <h5 class="font-medium text-emerald-400 mb-1">Accumulation Zone</h5>
-          <p id="accumulation-text" class="text-sm text-zinc-300"></p>
-        </div>
-        <div>
-          <h5 class="font-medium text-emerald-400 mb-1">Key Takeaway for Long-term Investors</h5>
-          <p id="takeaway-text" class="text-sm text-zinc-300"></p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-</div>
 
   </div>
 
   <script>
-    // ==================== DATA FROM EXCEL ====================
-    // ==================== DATA FROM EXCEL ====================
+    // ==================== DATA ====================
     const equityData = [
       {year:2025, n50:12.4, mid:24.6, small:31.2, n250:18.4, gold:19.8, silver:28.5, cpse:22.1},
       {year:2024, n50:15.2, mid:28.7, small:35.9, n250:22.1, gold:22.4, silver:31.2, cpse:18.7},
@@ -364,13 +251,9 @@
     ];
 
     const goldSilverData = [
-      {year:2026, gold:13187, silver:210},
-      {year:2025, gold:10500, silver:165},
-      {year:2024, gold:7791, silver:92},
-      {year:2023, gold:6533, silver:78},
-      {year:2020, gold:4865, silver:63},
-      {year:2015, gold:2634, silver:36},
-      {year:2010, gold:1850, silver:29},
+      {year:2026, gold:13187, silver:210}, {year:2025, gold:10500, silver:165},
+      {year:2024, gold:7791, silver:92}, {year:2023, gold:6533, silver:78},
+      {year:2020, gold:4865, silver:63}, {year:2015, gold:2634, silver:36}, {year:2010, gold:1850, silver:29},
     ];
 
     const ratioData = [
@@ -378,13 +261,31 @@
       {year:2022, ratio:85}, {year:2021, ratio:71.6}, {year:2020, ratio:77.2}
     ];
 
-    
     const commodityData = [
       {year:2026, rice:43, wheat:31, milk:60, petrol:102, diesel:98, lpg:913},
       {year:2025, rice:42, wheat:31, milk:59, petrol:105, diesel:101, lpg:870},
       {year:2024, rice:41, wheat:30.5, milk:58, petrol:100, diesel:96, lpg:803},
       {year:2020, rice:37, wheat:28, milk:52, petrol:80, diesel:76, lpg:780},
     ];
+
+    const popularScrips = [
+      { symbol: "GOLDEX", name: "Nippon India ETF Gold BeES" },
+      { symbol: "SILVERBEES", name: "Nippon India Silver ETF" },
+      { symbol: "NIFTYBEES", name: "Nippon India ETF Nifty BeES" },
+      { symbol: "BANKBEES", name: "Nippon India ETF Bank BeES" },
+      { symbol: "MOTNAS", name: "Motilal Oswal Nasdaq 100 ETF" },
+      { symbol: "MOT100", name: "Motilal Oswal Nifty 100 ETF" },
+      { symbol: "CPSEETF", name: "CPSE ETF" },
+      { symbol: "SBINIF", name: "SBI Nifty 50 ETF" },
+      { symbol: "NIFJUN", name: "Nippon India ETF Nifty Junior" },
+      { symbol: "RELIANCE", name: "Reliance Industries Ltd" },
+      { symbol: "TCS", name: "Tata Consultancy Services Ltd" },
+      { symbol: "HDFCBANK", name: "HDFC Bank Ltd" },
+      { symbol: "INFY", name: "Infosys Ltd" },
+      { symbol: "ICICIBANK", name: "ICICI Bank Ltd" }
+    ];
+
+    let watchlist = [];
 
     // ==================== RENDER FUNCTIONS ====================
     function renderEquityTable() {
@@ -409,14 +310,8 @@
 
     function renderCommodityTable() {
       const tbody = document.getElementById('commodity-table');
-      const data = [
-        {year:2026, rice:43, wheat:31, milk:60, petrol:102, diesel:98, lpg:913},
-        {year:2025, rice:42, wheat:31, milk:59, petrol:105, diesel:101, lpg:870},
-        {year:2024, rice:41, wheat:30.5, milk:58, petrol:100, diesel:96, lpg:803},
-        {year:2020, rice:37, wheat:28, milk:52, petrol:80, diesel:76, lpg:780},
-      ];
       tbody.innerHTML = '';
-      data.forEach(row => {
+      commodityData.forEach(row => {
         const tr = document.createElement('tr');
         tr.className = 'border-b border-zinc-800';
         tr.innerHTML = `
@@ -447,13 +342,7 @@
         type: 'line',
         data: {
           labels: ratioData.map(d => d.year),
-          datasets: [{
-            label: 'Gold : Silver Ratio',
-            data: ratioData.map(d => d.ratio),
-            borderColor: '#a78bfa',
-            tension: 0.3,
-            fill: false
-          }]
+          datasets: [{ label: 'Gold : Silver Ratio', data: ratioData.map(d => d.ratio), borderColor: '#a78bfa', tension: 0.3 }]
         },
         options: { responsive: true, plugins: { legend: { display: false } } }
       });
@@ -465,168 +354,101 @@
       document.querySelectorAll('.nav-btn').forEach((btn, i) => btn.classList.toggle('nav-active', i === tab));
     }
 
-    
+    // ==================== HOLDINGS ====================
+    async function fetchBreezeHoldings() {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      const secretKey = document.getElementById('secretKey').value.trim();
+      const sessionToken = document.getElementById('sessionToken').value.trim();
 
-    // ==================== BREEZE HOLDINGS INTEGRATION ====================
-  async function fetchBreezeHoldings() {
-  const apiKey = document.getElementById('apiKey').value.trim();
-  const secretKey = document.getElementById('secretKey').value.trim();
-  const sessionToken = document.getElementById('sessionToken').value.trim();
+      if (!apiKey || !secretKey || !sessionToken) {
+        alert("Please enter all credentials");
+        return;
+      }
 
-  if (!apiKey || !secretKey || !sessionToken) {
-    alert("Please enter API Key, Secret Key and Session Token");
-    return;
-  }
+      const tbody = document.getElementById('holdings-table');
+      tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-zinc-400">Fetching from ICICI Direct...</td></tr>`;
 
-  const tbody = document.getElementById('holdings-table');
-  tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-zinc-400">Fetching from ICICI Direct...</td></tr>`;
+      try {
+        const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
+        const response = await fetch(`${BACKEND_URL}/api/holdings`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ api_key: apiKey, secret_key: secretKey, session_token: sessionToken })
+        });
 
-  try {
-    const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
+        const result = await response.json();
+        if (!result.success || !result.data) throw new Error(result.detail || "Failed to fetch holdings");
 
-    const response = await fetch(`${BACKEND_URL}/api/holdings`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        api_key: apiKey,
-        secret_key: secretKey,
-        session_token: sessionToken
-      })
-    });
+        tbody.innerHTML = "";
+        result.data.forEach(item => {
+          const symbol = item.stock_code || "N/A";
+          const qty = parseFloat(item.quantity) || 0;
+          const avgPrice = parseFloat(item.average_price) || 0;
+          const ltp = parseFloat(item.current_market_price) || 0;
+          const value = qty * ltp;
+          const pnl = avgPrice > 0 ? ((ltp - avgPrice) / avgPrice * 100).toFixed(2) : "0.00";
 
-    const result = await response.json();
-
-    if (!result.success || !result.data) {
-      throw new Error(result.detail || "Failed to fetch holdings");
+          const row = document.createElement("tr");
+          row.className = "border-b border-zinc-800 hover:bg-zinc-900";
+          row.innerHTML = `
+            <td class="py-3 font-medium">${symbol}</td>
+            <td>${qty}</td>
+            <td>₹${avgPrice.toFixed(2)}</td>
+            <td>₹${ltp.toFixed(2)}</td>
+            <td>₹${value.toFixed(2)}</td>
+            <td class="${pnl >= 0 ? 'text-emerald-400' : 'text-red-400'} font-medium">${pnl}%</td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (error) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-red-400">${error.message}</td></tr>`;
+      }
     }
 
-    tbody.innerHTML = "";
-
-    if (result.data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-zinc-400">No holdings found.</td></tr>`;
-      return;
-    }
-
-    // Loop through each holding
-    result.data.forEach(item => {
-      const symbol     = item.stock_code || "N/A";
-      const qty        = parseFloat(item.quantity) || 0;
-      const avgPrice   = parseFloat(item.average_price) || 0;
-      const ltp        = parseFloat(item.current_market_price) || 0;
-      const value      = qty * ltp;
-      const pnlPercent = (avgPrice > 0) ? ((ltp - avgPrice) / avgPrice * 100).toFixed(2) : "0.00";
-
-      const row = document.createElement("tr");
-      row.className = "border-b border-zinc-800 hover:bg-zinc-900";
-
-      row.innerHTML = `
-        <td class="py-3 font-medium">${symbol}</td>
-        <td>${qty}</td>
-        <td>₹${avgPrice.toFixed(2)}</td>
-        <td>₹${ltp.toFixed(2)}</td>
-        <td>₹${value.toFixed(2)}</td>
-        <td class="${pnlPercent >= 0 ? 'text-emerald-400' : 'text-red-400'} font-medium">${pnlPercent}%</td>
-      `;
-
-      tbody.appendChild(row);
-    });
-
-  } catch (error) {
-    console.error("Error:", error);
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="6" class="py-6 text-center text-red-400">
-          ${error.message}
-        </td>
-      </tr>
-    `;
-  }
-}
-
-
-function hideRawResponse() {
-  document.getElementById('raw-response').classList.add('hidden');
-}
-
-// ==================== ANALYTICS TAB ====================
-    const popularScrips = [
-  { symbol: "GOLDEX", name: "Nippon India ETF Gold BeES" },
-  { symbol: "SILVERBEES", name: "Nippon India Silver ETF" },
-  { symbol: "NIFTYBEES", name: "Nippon India ETF Nifty BeES" },
-  { symbol: "BANKBEES", name: "Nippon India ETF Bank BeES" },
-  { symbol: "MOTNAS", name: "Motilal Oswal Nasdaq 100 ETF" },
-  { symbol: "MOT100", name: "Motilal Oswal Nifty 100 ETF" },
-  { symbol: "CPSEETF", name: "CPSE ETF" },
-  { symbol: "SBINIF", name: "SBI Nifty 50 ETF" },
-  { symbol: "NIPSIL", name: "Nippon India Silver ETF" },
-  { symbol: "NIFJUN", name: "Nippon India ETF Nifty Junior" },
-  { symbol: "RELIANCE", name: "Reliance Industries Ltd" },
-  { symbol: "TCS", name: "Tata Consultancy Services Ltd" },
-  { symbol: "HDFCBANK", name: "HDFC Bank Ltd" },
-  { symbol: "INFY", name: "Infosys Ltd" },
-  { symbol: "ICICIBANK", name: "ICICI Bank Ltd" }
-];
-
-    let watchlist = [];
-    let currentChart = null;
-
+    // ==================== WATCHLIST ====================
     function loadScripDropdown() {
       const select = document.getElementById('scripSelect');
-      if (!select) return;
-
       select.innerHTML = '<option value="">Select a scrip...</option>';
-
       popularScrips.forEach(item => {
         const option = document.createElement('option');
-        option.value = item.symbol;                    // Only symbol is sent
-        option.textContent = `${item.symbol} - ${item.name}`;  // Shown in dropdown
+        option.value = item.symbol;
+        option.textContent = `${item.symbol} - ${item.name}`;
         select.appendChild(option);
       });
     }
 
     function addToWatchlist() {
-  const select = document.getElementById('scripSelect');
-  const symbol = select.value;
+      const select = document.getElementById('scripSelect');
+      const symbol = select.value;
+      if (!symbol || watchlist.includes(symbol)) return;
 
-  if (!symbol) return;
+      watchlist.push(symbol);
+      renderWatchlist();
+      select.value = '';
+    }
 
-  // Check if already exists
-  if (watchlist.some(item => item === symbol || item.symbol === symbol)) {
-    alert("Scrip already in watchlist");
-    return;
-  }
+    function renderWatchlist() {
+      const container = document.getElementById('watchlist');
+      container.innerHTML = '';
 
-  watchlist.push(symbol);           // Only push the symbol (for backend)
-  renderWatchlist();
-  
-  select.value = '';
-}
+      watchlist.forEach((scrip, index) => {
+        const info = popularScrips.find(s => s.symbol === scrip);
+        const display = info ? `${scrip} - ${info.name}` : scrip;
 
-   
-   function renderWatchlist() {
-  const container = document.getElementById('watchlist');
-  container.innerHTML = '';
+        const div = document.createElement('div');
+        div.className = `flex justify-between items-center p-3 rounded-xl hover:bg-zinc-800`;
+        div.innerHTML = `
+          <span class="font-medium">${display}</span>
+          <div class="flex gap-2">
+            <button onclick="showHistoricalChart('${scrip}', event)" class="text-emerald-400 hover:text-emerald-300 text-sm">View Chart</button>
+            <button onclick="removeFromWatchlist(${index}, event)" class="text-red-400 hover:text-red-300">×</button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
 
-  watchlist.forEach((scrip, index) => {
-    // Find full name if available
-    const scripInfo = popularScrips.find(s => s.symbol === scrip);
-    const displayName = scripInfo ? `${scrip} - ${scripInfo.name}` : scrip;
-
-    const div = document.createElement('div');
-    div.className = `flex justify-between items-center p-3 rounded-xl cursor-pointer hover:bg-zinc-800`;
-    div.innerHTML = `
-      <span class="font-medium">${displayName}</span>
-      <div class="flex gap-2">
-        <button onclick="showHistoricalChart('${scrip}', event)" class="text-emerald-400 hover:text-emerald-300 text-sm">View Chart</button>
-        <button onclick="removeFromWatchlist(${index}, event)" class="text-red-400 hover:text-red-300">×</button>
-      </div>
-    `;
-    container.appendChild(div);
-  });
-
-  localStorage.setItem('watchlist', JSON.stringify(watchlist));
-  
-}
+      localStorage.setItem('watchlist', JSON.stringify(watchlist));
+    }
 
     function removeFromWatchlist(index, e) {
       e.stopImmediatePropagation();
@@ -634,315 +456,181 @@ function hideRawResponse() {
       renderWatchlist();
     }
 
-    
-
-let historicalChartInstance = null;
-let currentScrip = null;
-let currentPeriod = 5; // Default 5 years
-
-async function showHistoricalChart(scrip, e) {
-  if (e) e.stopImmediatePropagation();
-
-  currentScrip = scrip;
-  currentPeriod = 5; // Reset to 5Y when new scrip is selected
-
-  const ctx = document.getElementById('historicalChart');
-  const title = document.getElementById('chart-title');
-  const periodSelector = document.getElementById('period-selector');
-
-  // Show period buttons
-  periodSelector.classList.remove('hidden');
-
-  // Destroy old chart
-  if (historicalChartInstance) {
-    historicalChartInstance.destroy();
-    historicalChartInstance = null;
-  }
-
-  title.textContent = `${scrip} - Historical Performance`;
-  ctx.style.opacity = "0.4";
-
-  await fetchAndRenderChart(scrip, currentPeriod);
-}
-
-async function fetchAndRenderChart(scrip, years) {
-  const ctx = document.getElementById('historicalChart');
-  ctx.style.opacity = "0.4";
-
-  try {
-    const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
-
-    const toDate = new Date().toISOString().split('T')[0] + "T06:00:00.000Z";
-    const fromDate = new Date(new Date().setFullYear(new Date().getFullYear() - years))
-                      .toISOString().split('T')[0] + "T06:00:00.000Z";
-
-    const response = await fetch(`${BACKEND_URL}/api/historical`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        api_key: document.getElementById('apiKey').value.trim(),
-        secret_key: document.getElementById('secretKey').value.trim(),
-        session_token: document.getElementById('sessionToken').value.trim(),
-        stock_code: scrip,
-        from_date: fromDate,
-        to_date: toDate,
-        interval: "1day"
-      })
-    });
-
-    const result = await response.json();
-
-    if (!result.success || !result.data || result.data.length === 0) {
-      throw new Error("No historical data available");
-    }
-
-    // Prepare chart data
-    const labels = result.data.map(item => item.datetime.split('T')[0]);
-    const prices = result.data.map(item => parseFloat(item.close));
-
-    // Destroy previous chart if exists
-    if (historicalChartInstance) {
-      historicalChartInstance.destroy();
-    }
-
-    // Create new chart with better styling
-    historicalChartInstance = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: `${scrip} Close Price`,
-          data: prices,
-          borderColor: '#00d4ff',
-          backgroundColor: 'rgba(0, 212, 255, 0.08)',
-          borderWidth: 2.5,
-          tension: 0.2,
-          fill: true,
-          pointRadius: 0,
-          pointHoverRadius: 4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            mode: 'index',
-            intersect: false,
-            backgroundColor: '#18181b',
-            titleColor: '#fff',
-            bodyColor: '#fff'
-          }
-        },
-        scales: {
-          x: {
-            grid: { color: '#27272a', lineWidth: 0.5 },
-            ticks: { color: '#71717a', maxTicksLimit: 8 }
-          },
-          y: {
-            grid: { color: '#27272a', lineWidth: 0.5 },
-            ticks: { color: '#71717a' }
-          }
-        },
-        interaction: {
-          mode: 'nearest',
-          axis: 'x',
-          intersect: false
-        }
-      }
-    });
-
-  } catch (error) {
-    console.error(error);
-    alert("Error: " + error.message);
-  } finally {
-    ctx.style.opacity = "1";
-  }
-}
-
-// Function to change time period
-function changeTimePeriod(years) {
-  if (!currentScrip) return;
-
-  currentPeriod = years;
-
-  // Update active button style
-  document.querySelectorAll('.period-btn').forEach(btn => {
-    btn.classList.remove('bg-emerald-600', 'text-white');
-    btn.classList.add('bg-zinc-800', 'hover:bg-zinc-700');
-  });
-
-  // Highlight selected button
-  event.target.classList.remove('bg-zinc-800', 'hover:bg-zinc-700');
-  event.target.classList.add('bg-emerald-600', 'text-white');
-
-  // Re-fetch data with new period
-  fetchAndRenderChart(currentScrip, years);
-}
-    
-    function saveWatchlist() {
-      localStorage.setItem('watchlist', JSON.stringify(watchlist));
-      alert('Watchlist saved!');
-    }
-
-    function exportWatchlist() {
-      const dataStr = JSON.stringify(watchlist);
-      const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-      const link = document.createElement('a');
-      link.href = dataUri;
-      link.download = 'watchlist.json';
-      link.click();
-    }
-
-    function importWatchlist(event) {
-      const file = event.target.files[0];
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const data = JSON.parse(e.target.result);
-          if (Array.isArray(data)) {
-            watchlist = data;
-            renderWatchlist();
-            alert('Watchlist imported!');
-          }
-        } catch {
-          alert('Invalid file');
-        }
-      };
-      reader.readAsText(file);
-    }
-
     function loadSavedWatchlist() {
-  const saved = localStorage.getItem('watchlist');
-  if (saved) {
-    watchlist = JSON.parse(saved);
-    renderWatchlist();           // This already calls generateTipForTheDay()
-  } 
-}
-
-    // Populate Analyze dropdown
-function loadAnalyzeDropdown() {
-  const select = document.getElementById('analyzeSelect');
-  if (!select) return;
-
-  select.innerHTML = '<option value="">Select a scrip to analyze...</option>';
-  popularScrips.forEach(item => {
-    const option = document.createElement('option');
-    option.value = item.symbol;
-    option.textContent = `${item.symbol} - ${item.name}`;
-    select.appendChild(option);
-  });
-}
-
-// Main Analyze Function
-async function analyzeScrip() {
-  const select = document.getElementById('analyzeSelect');
-  const symbol = select.value;
-
-  if (!symbol) {
-    alert("Please select a scrip to analyze");
-    return;
-  }
-
-  const resultBox = document.getElementById('analysis-result');
-  resultBox.classList.remove('hidden');
-
-  document.getElementById('analysis-title').textContent = `${symbol} - Long Term Analysis`;
-
-  // Fetch 10 years of data for better analysis
-  try {
-    const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
-    const toDate = new Date().toISOString().split('T')[0] + "T06:00:00.000Z";
-    const fromDate = new Date(new Date().setFullYear(new Date().getFullYear() - 10))
-                      .toISOString().split('T')[0] + "T06:00:00.000Z";
-
-    const response = await fetch(`${BACKEND_URL}/api/historical`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        api_key: document.getElementById('apiKey').value.trim(),
-        secret_key: document.getElementById('secretKey').value.trim(),
-        session_token: document.getElementById('sessionToken').value.trim(),
-        stock_code: symbol,
-        from_date: fromDate,
-        to_date: toDate,
-        interval: "1day"
-      })
-    });
-
-    const result = await response.json();
-
-    if (!result.success || !result.data || result.data.length === 0) {
-      throw new Error("Insufficient historical data for analysis");
+      const saved = localStorage.getItem('watchlist');
+      if (saved) {
+        watchlist = JSON.parse(saved);
+        renderWatchlist();
+      }
     }
 
-    const prices = result.data.map(item => parseFloat(item.close));
-    const firstPrice = prices[0];
-    const lastPrice = prices[prices.length - 1];
-    const years = 10;
+    // ==================== HISTORICAL CHART ====================
+    let historicalChartInstance = null;
+    let currentScrip = null;
 
-    // Calculate CAGR
-    const cagr = (Math.pow(lastPrice / firstPrice, 1 / years) - 1) * 100;
+    async function showHistoricalChart(scrip, e) {
+      if (e) e.stopImmediatePropagation();
+      currentScrip = scrip;
 
-    // Max Drawdown
-    let maxDrawdown = 0;
-    let peak = prices[0];
-    for (let price of prices) {
-      if (price > peak) peak = price;
-      const drawdown = ((peak - price) / peak) * 100;
-      if (drawdown > maxDrawdown) maxDrawdown = drawdown;
+      const ctx = document.getElementById('historicalChart');
+      const title = document.getElementById('chart-title');
+      const periodSelector = document.getElementById('period-selector');
+
+      periodSelector.classList.remove('hidden');
+
+      if (historicalChartInstance) historicalChartInstance.destroy();
+
+      title.textContent = `${scrip} - Historical Performance`;
+      ctx.style.opacity = "0.4";
+
+      await fetchAndRenderChart(scrip, 5);
     }
 
-    // All-time high comparison
-    const ath = Math.max(...prices);
-    const currentVsAth = ((lastPrice - ath) / ath) * 100;
+    async function fetchAndRenderChart(scrip, years) {
+      const ctx = document.getElementById('historicalChart');
+      ctx.style.opacity = "0.4";
 
-    // Update UI
-    document.getElementById('cagr-value').textContent = cagr.toFixed(1) + "%";
-    document.getElementById('drawdown-value').textContent = maxDrawdown.toFixed(1) + "%";
-    document.getElementById('ath-value').textContent = currentVsAth.toFixed(1) + "%";
+      try {
+        const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
+        const toDate = new Date().toISOString().split('T')[0] + "T06:00:00.000Z";
+        const fromDate = new Date(new Date().setFullYear(new Date().getFullYear() - years))
+                          .toISOString().split('T')[0] + "T06:00:00.000Z";
 
-    // Dynamic Analysis Text
-    let trend = cagr > 12 ? "Strong long-term uptrend with healthy compounding." : 
-                cagr > 8 ? "Decent long-term returns with moderate growth." : 
-                "Returns have been modest. Requires deeper fundamental check.";
+        const response = await fetch(`${BACKEND_URL}/api/historical`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            api_key: document.getElementById('apiKey').value.trim(),
+            secret_key: document.getElementById('secretKey').value.trim(),
+            session_token: document.getElementById('sessionToken').value.trim(),
+            stock_code: scrip, from_date: fromDate, to_date: toDate, interval: "1day"
+          })
+        });
 
-    let valuation = currentVsAth > -15 ? "Currently trading near all-time highs. Valuation may be stretched." :
-                    currentVsAth < -30 ? "Significant correction from peak. May offer accumulation opportunity." :
-                    "Trading at a reasonable discount from peak levels.";
+        const result = await response.json();
+        if (!result.success || !result.data?.length) throw new Error("No historical data available");
 
-    let accumulation = currentVsAth < -25 ? 
-      `Consider accumulating between ₹${(lastPrice * 0.85).toFixed(0)} - ₹${(lastPrice * 0.95).toFixed(0)} on dips.` :
-      "Wait for 15-25% correction from current levels for better entry.";
+        const labels = result.data.map(item => item.datetime.split('T')[0]);
+        const prices = result.data.map(item => parseFloat(item.close));
 
-    let takeaway = cagr > 12 && maxDrawdown < 50 ? 
-      "Good candidate for long-term portfolio. Can be accumulated on corrections." :
-      "Monitor closely. Better entry may be available after correction.";
+        if (historicalChartInstance) historicalChartInstance.destroy();
 
-    document.getElementById('trend-text').textContent = trend;
-    document.getElementById('valuation-text').textContent = valuation;
-    document.getElementById('accumulation-text').textContent = accumulation;
-    document.getElementById('takeaway-text').textContent = takeaway;
+        historicalChartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [{
+              label: `${scrip} Close Price`,
+              data: prices,
+              borderColor: '#00d4ff',
+              backgroundColor: 'rgba(0, 212, 255, 0.08)',
+              borderWidth: 2.5,
+              tension: 0.2,
+              fill: true
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { color: '#27272a' }, ticks: { color: '#71717a' } },
+              y: { grid: { color: '#27272a' }, ticks: { color: '#71717a' } }
+            }
+          }
+        });
+      } catch (error) {
+        alert(error.message);
+      } finally {
+        ctx.style.opacity = "1";
+      }
+    }
 
-  } catch (error) {
-    console.error(error);
-    alert("Analysis failed: " + error.message);
-    resultBox.classList.add('hidden');
-  }
-}
- // ==================== INITIALIZE ====================
+    function changeTimePeriod(years) {
+      if (!currentScrip) return;
+      document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('bg-emerald-600', 'text-white'));
+      event.target.classList.add('bg-emerald-600', 'text-white');
+      fetchAndRenderChart(currentScrip, years);
+    }
+
+    // ==================== FUNDAMENTAL ANALYSIS ====================
+    function loadAnalyzeDropdown() {
+      const select = document.getElementById('analyzeSelect');
+      select.innerHTML = '<option value="">Select a scrip to analyze...</option>';
+      popularScrips.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.symbol;
+        option.textContent = `${item.symbol} - ${item.name}`;
+        select.appendChild(option);
+      });
+    }
+
+    async function analyzeScrip() {
+      const symbol = document.getElementById('analyzeSelect').value;
+      if (!symbol) return alert("Please select a scrip");
+
+      const resultBox = document.getElementById('analysis-result');
+      resultBox.classList.remove('hidden');
+      document.getElementById('analysis-title').textContent = `${symbol} - Long Term Analysis`;
+
+      try {
+        const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
+        const toDate = new Date().toISOString().split('T')[0] + "T06:00:00.000Z";
+        const fromDate = new Date(new Date().setFullYear(new Date().getFullYear() - 10)).toISOString().split('T')[0] + "T06:00:00.000Z";
+
+        const res = await fetch(`${BACKEND_URL}/api/historical`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            api_key: document.getElementById('apiKey').value.trim(),
+            secret_key: document.getElementById('secretKey').value.trim(),
+            session_token: document.getElementById('sessionToken').value.trim(),
+            stock_code: symbol, from_date: fromDate, to_date: toDate, interval: "1day"
+          })
+        });
+
+        const data = await res.json();
+        if (!data.success || !data.data?.length) throw new Error("Insufficient data");
+
+        const prices = data.data.map(d => parseFloat(d.close));
+        const cagr = (Math.pow(prices[prices.length-1] / prices[0], 1/10) - 1) * 100;
+
+        let maxDD = 0, peak = prices[0];
+        prices.forEach(p => {
+          peak = Math.max(peak, p);
+          maxDD = Math.max(maxDD, ((peak - p) / peak) * 100);
+        });
+
+        const ath = Math.max(...prices);
+        const vsAth = ((prices[prices.length-1] - ath) / ath) * 100;
+
+        document.getElementById('cagr-value').textContent = cagr.toFixed(1) + "%";
+        document.getElementById('drawdown-value').textContent = maxDD.toFixed(1) + "%";
+        document.getElementById('ath-value').textContent = vsAth.toFixed(1) + "%";
+
+        document.getElementById('trend-text').textContent = cagr > 12 ? "Strong compounding trend over 10 years." : "Moderate long-term returns.";
+        document.getElementById('valuation-text').textContent = vsAth < -25 ? "Attractive entry zone after correction." : "Near peak levels — wait for dips.";
+        document.getElementById('accumulation-text').textContent = vsAth < -20 ? `Good accumulation range: ₹${(prices[prices.length-1]*0.85).toFixed(0)} - ₹${(prices[prices.length-1]*0.95).toFixed(0)}` : "Wait for better entry on correction.";
+        document.getElementById('takeaway-text').textContent = "Suitable for long-term investors with 7+ year horizon. Focus on dips.";
+
+      } catch (err) {
+        alert("Analysis failed: " + err.message);
+        resultBox.classList.add('hidden');
+      }
+    }
+
+    // ==================== INITIALIZE ====================
     window.onload = function() {
       renderEquityTable();
-    renderCommodityTable();
-    createGoldSilverChart();
-    createRatioChart();
+      renderCommodityTable();
+      createGoldSilverChart();
+      createRatioChart();
 
-    // Analytics
-    loadScripDropdown();
-    loadSavedWatchlist();
-    loadAnalyzeDropdown();
+      loadScripDropdown();
+      loadSavedWatchlist();
+      loadAnalyzeDropdown();
 
+      showTab(0);
     };
   </script>
 </body>
