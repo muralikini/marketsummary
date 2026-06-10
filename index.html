@@ -1657,43 +1657,41 @@ function showPortfolioModal() {
 async function refreshPortfolioPrices() {
   const btn = event.currentTarget;
   const originalText = btn.innerHTML;
-  btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Refreshing Prices...`;
+  btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Refreshing...`;
   btn.disabled = true;
 
-  let successCount = 0;
-  let failedCount = 0;
+  let equityUpdated = 0;
+  let mfUpdated = 0;
+  let failed = 0;
 
   try {
     for (let item of portfolioItems) {
-      if (item.type !== "MutualFund" || !item.scheme_code) continue;
+      let newPrice = null;
 
-      try {
-        const newPrice = await fetchMFNav(item.scheme_code);
+      if (item.type === "MutualFund" && item.scheme_code) {
+        newPrice = await fetchMFNav(item.scheme_code);
+        if (newPrice) mfUpdated++;
+      } 
+      else if (item.type === "Equity" && item.name) {
+        newPrice = await fetchEquityLivePrice(item.name);
+        if (newPrice) equityUpdated++;
+      }
 
-        if (newPrice && newPrice > 0) {
-          item.current_price = newPrice;
-          successCount++;
-          console.log(`✅ ${item.name} → ₹${newPrice}`);
-        } else {
-          failedCount++;
-          console.warn(`⚠️ No price returned for ${item.name} (scheme_code: ${item.scheme_code})`);
-        }
-      } catch (err) {
-        failedCount++;
-        console.error(`❌ Error fetching price for ${item.name}:`, err);
+      if (newPrice && newPrice > 0) {
+        item.current_price = newPrice;
+      } else {
+        failed++;
       }
     }
 
-    // Save all updates to Firebase
     await savePortfolioToFirebase();
-
     renderPortfolioTable();
     calculatePortfolioSummary();
 
-    alert(`✅ Refresh complete!\nUpdated: ${successCount} | Failed: ${failedCount}`);
+    alert(`✅ Refresh Complete!\nEquity Updated: ${equityUpdated} | MF Updated: ${mfUpdated} | Failed: ${failed}`);
   } catch (error) {
-    console.error("Overall refresh failed:", error);
-    alert("Refresh failed. Check console for details.");
+    console.error("Refresh error:", error);
+    alert("Refresh failed. Check console.");
   } finally {
     btn.innerHTML = originalText;
     btn.disabled = false;
@@ -1701,22 +1699,16 @@ async function refreshPortfolioPrices() {
 }
 
 // Save entire portfolio to Firebase
-async function savePortfolioToFirebase() {
-  const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
-  await fetch(`${BACKEND_URL}/api/portfolio/bulk`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ items: portfolioItems })
-  });
-}
-
 async function fetchEquityLivePrice(stockCode) {
   try {
     const apiKey = document.getElementById('apiKey')?.value?.trim();
     const secretKey = document.getElementById('secretKey')?.value?.trim();
     const sessionToken = document.getElementById('sessionToken')?.value?.trim();
 
-    if (!apiKey || !secretKey || !sessionToken) return null;
+    if (!apiKey || !secretKey || !sessionToken) {
+      console.warn("ICICI credentials missing for Equity price fetch");
+      return null;
+    }
 
     const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
     const res = await fetch(`${BACKEND_URL}/api/live-price`, {
@@ -1730,10 +1722,16 @@ async function fetchEquityLivePrice(stockCode) {
       })
     });
 
+    if (!res.ok) {
+      console.error("Live price backend error:", await res.text());
+      return null;
+    }
+
     const data = await res.json();
     return data.success && data.ltp ? parseFloat(data.ltp) : null;
+
   } catch (e) {
-    console.error("Equity price fetch failed", e);
+    console.error("Equity price fetch failed for", stockCode, e);
     return null;
   }
 }
