@@ -1092,22 +1092,27 @@ let portfolioItems = [];
   });
 }
 
-    function calculatePortfolioSummary() {
-      let total = 0, equity = 0, fixed = 0, physical = 0;
+   function calculatePortfolioSummary() {
+  let total = 0, equity = 0, fixed = 0, physical = 0;
 
-      portfolioItems.forEach(item => {
-        const value = item.quantity * (item.current_price || item.avg_price);
-        total += value;
-        if (["Equity", "MutualFund"].includes(item.type)) equity += value;
-        else if (["FD", "Bank"].includes(item.type)) fixed += value;
-        else physical += value;
-      });
+  portfolioItems.forEach(item => {
+    const value = item.quantity * (item.current_price || item.avg_price || 0);
+    total += value;
+    if (["Equity", "MutualFund"].includes(item.type)) equity += value;
+    else if (["FD", "Bank"].includes(item.type)) fixed += value;
+    else physical += value;
+  });
 
-      document.getElementById('total-portfolio-value').textContent = `₹${total.toLocaleString('en-IN')}`;
-      document.getElementById('equity-value').textContent = `₹${equity.toLocaleString('en-IN')}`;
-      document.getElementById('fixed-value').textContent = `₹${fixed.toLocaleString('en-IN')}`;
-      document.getElementById('physical-value').textContent = `₹${physical.toLocaleString('en-IN')}`;
-    }
+  const totalEl = document.getElementById('total-portfolio-value');
+  const equityEl = document.getElementById('equity-value');
+  const fixedEl = document.getElementById('fixed-value');
+  const physicalEl = document.getElementById('physical-value');
+
+  if (totalEl) totalEl.textContent = `₹${total.toLocaleString('en-IN')}`;
+  if (equityEl) equityEl.textContent = `₹${equity.toLocaleString('en-IN')}`;
+  if (fixedEl) fixedEl.textContent = `₹${fixed.toLocaleString('en-IN')}`;
+  if (physicalEl) physicalEl.textContent = `₹${physical.toLocaleString('en-IN')}`;
+}
 
     function addPortfolioItem() {
       showPortfolioModal();
@@ -1208,28 +1213,68 @@ let portfolioItems = [];
   portfolioItems.push(item);
   closePortfolioModal();
   renderPortfolioTable();
+  calculatePortfolioSummary();
 }
 
 // Refresh with live prices
 async function refreshPortfolioPrices() {
-  const btn = event.target;
+  const btn = event.currentTarget;
   const original = btn.innerHTML;
   btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Updating...`;
   btn.disabled = true;
 
-  for (let item of portfolioItems) {
-    if (item.type === "MutualFund" && item.scheme_code) {
-      item.current_price = await fetchMFNav(item.scheme_code);
-    } else if (item.type === "Equity" && item.name) {
-      // Add Equity live price logic here if needed
-      item.current_price = item.current_price || item.avg_price;
+  try {
+    for (let item of portfolioItems) {
+      if (item.type === "MutualFund" && item.scheme_code) {
+        const nav = await fetchMFNav(item.scheme_code);
+        if (nav) item.current_price = nav;
+      } else if (item.type === "Equity" && item.name) {
+        const price = await fetchEquityLivePrice(item.name);
+        if (price) item.current_price = price;
+      }
     }
-  }
 
-  renderPortfolioTable();
-  btn.innerHTML = original;
-  btn.disabled = false;
+    renderPortfolioTable();
+    calculatePortfolioSummary();
+    alert("✅ Prices refreshed successfully!");
+  } catch (e) {
+    console.error(e);
+    alert("Some prices could not be updated. Check console.");
+  } finally {
+    btn.innerHTML = original;
+    btn.disabled = false;
+  }
 }
+
+async function fetchEquityLivePrice(stockCode) {
+  try {
+    const apiKey = document.getElementById('apiKey')?.value?.trim();
+    const secretKey = document.getElementById('secretKey')?.value?.trim();
+    const sessionToken = document.getElementById('sessionToken')?.value?.trim();
+
+    if (!apiKey || !secretKey || !sessionToken) return null;
+
+    const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
+    const res = await fetch(`${BACKEND_URL}/api/live-price`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        api_key: apiKey,
+        secret_key: secretKey,
+        session_token: sessionToken,
+        stock_code: stockCode
+      })
+    });
+
+    const data = await res.json();
+    return data.success && data.ltp ? parseFloat(data.ltp) : null;
+  } catch (e) {
+    console.error("Equity price fetch failed", e);
+    return null;
+  }
+}
+
+
 
 async function fetchMFNav(schemeCode) {
   try {
@@ -1240,7 +1285,7 @@ async function fetchMFNav(schemeCode) {
       body: JSON.stringify({ scheme_code: schemeCode })
     });
     const data = await res.json();
-    return data.success ? parseFloat(data.nav) : null;
+    return data.success && data.nav ? parseFloat(data.nav) : null;
   } catch (e) {
     console.error("MF NAV fetch failed", e);
     return null;
@@ -1277,11 +1322,12 @@ async function fetchLivePrice(stockCode) {
 }
 
   function deletePortfolioItem(index) {
-      if (confirm("Delete this asset?")) {
-        portfolioItems.splice(index, 1);
-        renderPortfolioTable();
-      }
-    }
+  if (confirm("Delete this asset?")) {
+    portfolioItems.splice(index, 1);
+    renderPortfolioTable();
+    calculatePortfolioSummary();
+  }
+}
 
     // Refresh All
 function refreshAllLivePrices() {
