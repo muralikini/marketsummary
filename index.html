@@ -853,27 +853,51 @@
       // ==================== MUTUAL FUNDS JSON ====================
     let allMutualFunds = [];
 
-   async function loadMutualFunds() {
-  const CACHE_KEY = "mutual_funds_cache";
-  const CACHE_VERSION = "v1"; // Change this when you update the JSON file
-  const cachedData = localStorage.getItem(CACHE_KEY);
+  async function loadMutualFunds() {
+  const CACHE_KEY = "mf_cache_v2";           // New version key
+  const CACHE_EXPIRY_DAYS = 7;               // Refresh cache after 7 days
 
-  // Try to use cached data first
-  if (cachedData) {
+  // Check if valid cache exists
+  const cached = localStorage.getItem(CACHE_KEY);
+  if (cached) {
     try {
-      const parsed = JSON.parse(cachedData);
-      
-      // Check if cache version matches
-      if (parsed.version === CACHE_VERSION && Array.isArray(parsed.data)) {
+      const parsed = JSON.parse(cached);
+      const cacheAge = (Date.now() - parsed.timestamp) / (1000 * 60 * 60 * 24);
+
+      if (parsed.data && Array.isArray(parsed.data) && cacheAge < CACHE_EXPIRY_DAYS) {
         allMutualFunds = parsed.data;
-        console.log(`✅ Loaded ${allMutualFunds.length} mutual funds from cache (fast)`);
+        console.log(`✅ Loaded ${allMutualFunds.length} mutual funds from cache`);
         return;
+      } else {
+        console.log("Cache expired or invalid. Reloading...");
+        localStorage.removeItem(CACHE_KEY);
       }
     } catch (e) {
-      console.warn("Cache corrupted, will reload from file");
       localStorage.removeItem(CACHE_KEY);
     }
   }
+
+  // Load from JSON file (first time or cache miss)
+  try {
+    console.log("Fetching mutual-funds.json...");
+    const response = await fetch('./mutual-funds.json');
+    if (!response.ok) throw new Error("Failed to fetch mutual-funds.json");
+
+    allMutualFunds = await response.json();
+
+    // Save to cache
+    const cacheData = {
+      data: allMutualFunds,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+
+    console.log(`✅ Loaded and cached ${allMutualFunds.length} mutual funds`);
+  } catch (error) {
+    console.error("Failed to load mutual funds:", error);
+    allMutualFunds = []; // fallback
+  }
+}
 
   // If no valid cache, fetch from file
   try {
@@ -1268,9 +1292,34 @@ const debouncedFilterMutualFunds = debounce(function(searchTerm) {
 
 let selectedMF = null;
 
-// Original function name still works (for backward compatibility)
+/// Debounced filter
 function filterMutualFunds(searchTerm) {
-  debouncedFilterMutualFunds(searchTerm);
+  const suggestions = document.getElementById('mf-suggestions');
+  const hiddenName = document.getElementById('p-name');
+  const hiddenCode = document.getElementById('p-scheme-code');
+
+  if (!searchTerm || searchTerm.length < 2) {
+    if (suggestions) suggestions.classList.add('hidden');
+    return;
+  }
+
+  const filtered = allMutualFunds
+    .filter(mf => mf.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    .slice(0, 25);
+
+  if (!suggestions) return;
+
+  if (filtered.length === 0) {
+    suggestions.innerHTML = `<div class="p-3 text-sm text-zinc-400">No matching funds found</div>`;
+  } else {
+    suggestions.innerHTML = filtered.map(mf => `
+      <div onclick="selectMutualFund('${mf.scheme_code}', '${mf.name.replace(/'/g, "\\'")}')" 
+           class="p-3 hover:bg-zinc-700 cursor-pointer text-sm border-b border-zinc-700">
+        ${mf.name}
+      </div>
+    `).join('');
+  }
+  suggestions.classList.remove('hidden');
 }
 
 /*function filterMutualFunds(searchTerm) {
@@ -1306,9 +1355,9 @@ function filterMutualFunds(searchTerm) {
 
 
 function selectMutualFund(schemeCode, name) {
+  document.getElementById('p-name-search').value = name;
   document.getElementById('p-name').value = name;
   document.getElementById('p-scheme-code').value = schemeCode;
-  document.getElementById('p-name-search').value = name;
   document.getElementById('mf-suggestions').classList.add('hidden');
 }
 
@@ -1474,24 +1523,27 @@ function showPortfolioModal() {
   const container = document.getElementById('name-input-container');
 
   if (type === "MutualFund") {
-    if (!allMutualFunds || allMutualFunds.length === 0) {
-      container.innerHTML = `<p class="text-red-400 p-3">Mutual fund list not loaded. Please refresh the page.</p>`;
-      return;
-    }
     container.innerHTML = `
-      <select id="p-name" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3 text-white">
-        <option value="">Select Mutual Fund...</option>
-        ${allMutualFunds.map(mf => {
-          const name = mf.name || "Unknown Fund";
-          const code = mf.scheme_code || mf.schemeCode || "";
-          return `<option value="${code}|${name}">${name}</option>`;
-        }).join('')}
-      </select>
+      <div class="relative">
+        <input type="text" 
+               id="p-name-search" 
+               placeholder="Type to search Mutual Fund..." 
+               class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white"
+               oninput="filterMutualFunds(this.value)">
+        
+        <div id="mf-suggestions" 
+             class="absolute z-50 w-full bg-zinc-800 border border-zinc-700 rounded-lg mt-1 max-h-64 overflow-auto hidden shadow-lg">
+        </div>
+      </div>
+      
+      <input type="hidden" id="p-name">
+      <input type="hidden" id="p-scheme-code">
     `;
   } else {
     container.innerHTML = `
-      <input id="p-name" placeholder="Company / Asset Name (e.g. MOTNAS, RELIANCE)" 
-             class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3 text-white">
+      <input id="p-name" 
+             placeholder="Company / Asset Name (e.g. MOTNAS, RELIANCE)" 
+             class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white">
     `;
   }
 }
