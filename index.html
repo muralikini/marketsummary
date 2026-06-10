@@ -1011,6 +1011,7 @@ async function fetchCrudeOilPrice() {
    // Fetch Live NIFTY prices using ICICI Direct (via Backend)
 async function fetchLiveNiftyPrice(stockCode, elementId) {
   const el = document.getElementById(elementId);
+  if (!el) return;
   el.innerHTML = `<span class="text-sm text-zinc-400">Updating...</span>`;
 
   const apiKey = document.getElementById('apiKey').value.trim();
@@ -1234,38 +1235,40 @@ function showPortfolioModal() {
   const quantity = parseFloat(document.getElementById('p-quantity').value) || 0;
   const avg_price = parseFloat(document.getElementById('p-avgprice').value) || 0;
 
-  if (quantity <= 0 || avg_price <= 0) {
-    alert("Quantity and Average Price must be greater than 0");
+  if (!name || quantity <= 0 || avg_price <= 0) {
+    alert("Please fill all fields correctly");
     return;
   }
 
   const item = {
-    type: type,
-    name: name,
-    quantity: quantity,
-    avg_price: avg_price,
+    type,
+    name,
+    quantity,
+    avg_price,
     scheme_code: schemeCode,
     current_price: avg_price
   };
 
   try {
     const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
-    
+
     const response = await fetch(`${BACKEND_URL}/api/portfolio`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(item)
     });
 
-    if (!response.ok) throw new Error("Server error");
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Server error: ${response.status} - ${errorText}`);
+    }
 
     closePortfolioModal();
-    await loadPortfolio(); // Reload from Firebase (prevents duplicates)
-    
-    alert("✅ Asset added successfully!");
+    await loadPortfolio();           // Reload from Firebase
+    alert("✅ Asset saved successfully!");
   } catch (error) {
     console.error("Save failed:", error);
-    alert("Failed to save asset. Please check console (F12).");
+    alert("Failed to save asset. Check console for details.");
   }
 }
 
