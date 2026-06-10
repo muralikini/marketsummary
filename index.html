@@ -853,49 +853,47 @@
       // ==================== MUTUAL FUNDS JSON ====================
     let allMutualFunds = [];
 
-    async function loadMutualFunds() {
-  const CACHE_KEY = "mf_cache_v2";           // New version key
-  const CACHE_EXPIRY_DAYS = 7;               // Refresh cache after 7 days
+  async function loadMutualFunds() {
+  const CACHE_KEY = "mf_cache_v3"; // Fresh version
 
-  // Check if valid cache exists
+  // Try cache first
   const cached = localStorage.getItem(CACHE_KEY);
   if (cached) {
     try {
       const parsed = JSON.parse(cached);
-      const cacheAge = (Date.now() - parsed.timestamp) / (1000 * 60 * 60 * 24);
-
-      if (parsed.data && Array.isArray(parsed.data) && cacheAge < CACHE_EXPIRY_DAYS) {
+      if (parsed.data && Array.isArray(parsed.data) && parsed.data.length > 1000) {
         allMutualFunds = parsed.data;
         console.log(`✅ Loaded ${allMutualFunds.length} mutual funds from cache`);
         return;
-      } else {
-        console.log("Cache expired or invalid. Reloading...");
-        localStorage.removeItem(CACHE_KEY);
       }
     } catch (e) {
       localStorage.removeItem(CACHE_KEY);
     }
   }
 
-  // Load from JSON file (first time or cache miss)
+  // Load from file
   try {
-    console.log("Fetching mutual-funds.json...");
+    console.log("Fetching mutual-funds.json from server...");
     const response = await fetch('./mutual-funds.json');
-    if (!response.ok) throw new Error("Failed to fetch mutual-funds.json");
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
     allMutualFunds = await response.json();
 
     // Save to cache
-    const cacheData = {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({
       data: allMutualFunds,
       timestamp: Date.now()
-    };
-    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+    }));
 
-    console.log(`✅ Loaded and cached ${allMutualFunds.length} mutual funds`);
+    console.log(`✅ Successfully loaded and cached ${allMutualFunds.length} mutual funds`);
+
   } catch (error) {
-    console.error("Failed to load mutual funds:", error);
-    allMutualFunds = []; // fallback
+    console.error("❌ Failed to load mutual-funds.json:", error);
+    allMutualFunds = [];
+    alert("Failed to load Mutual Fund list. Please check if mutual-funds.json exists.");
   }
 }
 
@@ -1751,6 +1749,7 @@ function refreshAllLivePrices() {
     //window.onload = function() {
     window.onload = async () => {
       await loadMutualFunds();
+      
   renderEquityTable();
   createGoldSilverChart();
   createRatioChart();
@@ -1758,7 +1757,7 @@ function refreshAllLivePrices() {
   loadScripDropdown();
   loadSavedWatchlist();
   loadAnalyzeDropdown();
-  loadPortfolio();
+  await loadPortfolio();
 
   // Auto load live prices
   setTimeout(() => {
