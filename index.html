@@ -1126,12 +1126,14 @@ let portfolioItems = [];
     // ==================== PORTFOLIO (with MF support) ====================
     
 
-  function showPortfolioModal() {
+  // ==================== ADD ASSET (Fixed) ====================
+function showPortfolioModal() {
   const modal = document.getElementById('portfolio-modal');
-  const form = document.getElementById('portfolio-form');
+  const formContainer = document.getElementById('portfolio-form');
 
-  form.innerHTML = `
-    <select id="p-type" onchange="handlePortfolioTypeChange()" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
+  formContainer.innerHTML = `
+    <select id="p-type" onchange="handlePortfolioTypeChange()" 
+            class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3 text-white">
       <option value="Equity">Equity / ETF</option>
       <option value="MutualFund">Mutual Fund</option>
       <option value="FD">Fixed Deposit</option>
@@ -1140,16 +1142,31 @@ let portfolioItems = [];
       <option value="RealEstate">Real Estate</option>
       <option value="Cash">Cash / Others</option>
     </select>
+
     <div id="name-input-container" class="mb-3"></div>
-    <input id="p-quantity" type="number" step="0.01" placeholder="Quantity / Units" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
-    <input id="p-avgprice" type="number" step="0.01" placeholder="Average Purchase Price / NAV" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-6">
+
+    <input id="p-quantity" type="number" step="0.01" placeholder="Quantity / Units" 
+           class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3 text-white">
+
+    <input id="p-avgprice" type="number" step="0.01" placeholder="Average Purchase Price / NAV" 
+           class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-6 text-white">
+
     <div class="flex gap-3">
-      <button onclick="savePortfolioItem()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 py-3 rounded-xl font-medium">Save Asset</button>
-      <button onclick="closePortfolioModal()" class="flex-1 bg-zinc-700 hover:bg-zinc-600 py-3 rounded-xl">Cancel</button>
+      <button onclick="savePortfolioItem()" 
+              class="flex-1 bg-emerald-600 hover:bg-emerald-700 py-3 rounded-xl font-medium">
+        Save Asset
+      </button>
+      <button onclick="closePortfolioModal()" 
+              class="flex-1 bg-zinc-700 hover:bg-zinc-600 py-3 rounded-xl">
+        Cancel
+      </button>
     </div>
   `;
 
+  // Set default to Equity and render input
+  document.getElementById('p-type').value = "Equity";
   handlePortfolioTypeChange();
+
   modal.classList.remove('hidden');
 }
 
@@ -1160,23 +1177,30 @@ let portfolioItems = [];
   }
  }
 
-    function handlePortfolioTypeChange() {
+  function handlePortfolioTypeChange() {
   const type = document.getElementById('p-type').value;
   const container = document.getElementById('name-input-container');
 
   if (type === "MutualFund") {
+    if (!allMutualFunds || allMutualFunds.length === 0) {
+      container.innerHTML = `<p class="text-red-400 p-3">Mutual fund list not loaded. Please refresh the page.</p>`;
+      return;
+    }
     container.innerHTML = `
-      <select id="p-name" onchange="updateMFSelection(this)" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
+      <select id="p-name" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3 text-white">
         <option value="">Select Mutual Fund...</option>
         ${allMutualFunds.map(mf => {
-          const name = mf.name || "Unknown";
+          const name = mf.name || "Unknown Fund";
           const code = mf.scheme_code || mf.schemeCode || "";
           return `<option value="${code}|${name}">${name}</option>`;
         }).join('')}
       </select>
     `;
   } else {
-    container.innerHTML = `<input id="p-name" placeholder="Company / Asset Name" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">`;
+    container.innerHTML = `
+      <input id="p-name" placeholder="Company / Asset Name (e.g. MOTNAS, RELIANCE)" 
+             class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3 text-white">
+    `;
   }
 }
 
@@ -1186,44 +1210,62 @@ let portfolioItems = [];
 
   async function savePortfolioItem() {
   const type = document.getElementById('p-type').value;
-  let name = "", schemeCode = null;
+  let name = "";
+  let schemeCode = null;
 
   if (type === "MutualFund") {
     const select = document.getElementById('p-name');
-    if (select.value) {
-      const parts = select.value.split('|');
-      schemeCode = parts[0];
-      name = parts[1];
+    if (!select || !select.value) {
+      alert("Please select a Mutual Fund");
+      return;
     }
+    const parts = select.value.split('|');
+    schemeCode = parts[0];
+    name = parts[1];
   } else {
-    name = document.getElementById('p-name').value.trim();
+    const nameInput = document.getElementById('p-name');
+    if (!nameInput || !nameInput.value.trim()) {
+      alert("Please enter asset name");
+      return;
+    }
+    name = nameInput.value.trim();
   }
 
   const quantity = parseFloat(document.getElementById('p-quantity').value) || 0;
   const avg_price = parseFloat(document.getElementById('p-avgprice').value) || 0;
 
+  if (quantity <= 0 || avg_price <= 0) {
+    alert("Quantity and Average Price must be greater than 0");
+    return;
+  }
+
   const item = {
-    type,
-    name,
-    quantity,
-    avg_price,
+    type: type,
+    name: name,
+    quantity: quantity,
+    avg_price: avg_price,
     scheme_code: schemeCode,
     current_price: avg_price
   };
 
   try {
     const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
-    await fetch(`${BACKEND_URL}/api/portfolio`, {
+    
+    const response = await fetch(`${BACKEND_URL}/api/portfolio`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(item)
     });
 
+    if (!response.ok) throw new Error("Server error");
+
     closePortfolioModal();
-    await loadPortfolio(); // reload from Firebase (no duplicates)
-  } catch (e) {
-    alert("Failed to save");
-    console.error(e);
+    await loadPortfolio(); // Reload from Firebase (prevents duplicates)
+    
+    alert("✅ Asset added successfully!");
+  } catch (error) {
+    console.error("Save failed:", error);
+    alert("Failed to save asset. Please check console (F12).");
   }
 }
 
