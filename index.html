@@ -1660,41 +1660,52 @@ async function refreshPortfolioPrices() {
   btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Refreshing...`;
   btn.disabled = true;
 
-  let equityUpdated = 0;
-  let mfUpdated = 0;
-  let failed = 0;
-
   try {
     for (let item of portfolioItems) {
       let newPrice = null;
 
       if (item.type === "MutualFund" && item.scheme_code) {
         newPrice = await fetchMFNav(item.scheme_code);
-        if (newPrice) mfUpdated++;
       } 
       else if (item.type === "Equity" && item.name) {
         newPrice = await fetchEquityLivePrice(item.name);
-        if (newPrice) equityUpdated++;
       }
 
       if (newPrice && newPrice > 0) {
         item.current_price = newPrice;
-      } else {
-        failed++;
       }
     }
 
-    await savePortfolioToFirebase();
+    // This was missing and causing the crash
+    if (typeof savePortfolioToFirebase === "function") {
+      await savePortfolioToFirebase();
+    } else {
+      console.warn("savePortfolioToFirebase function not found");
+    }
+
     renderPortfolioTable();
     calculatePortfolioSummary();
 
-    alert(`✅ Refresh Complete!\nEquity Updated: ${equityUpdated} | MF Updated: ${mfUpdated} | Failed: ${failed}`);
+    alert("✅ Prices refreshed!");
   } catch (error) {
-    console.error("Refresh error:", error);
+    console.error("Refresh failed:", error);
     alert("Refresh failed. Check console.");
   } finally {
     btn.innerHTML = originalText;
     btn.disabled = false;
+  }
+}
+
+async function savePortfolioToFirebase() {
+  try {
+    const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
+    await fetch(`${BACKEND_URL}/api/portfolio/bulk`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items: portfolioItems })
+    });
+  } catch (e) {
+    console.error("Failed to save portfolio to Firebase:", e);
   }
 }
 
