@@ -1589,37 +1589,45 @@ function showPortfolioModal() {
 // Refresh Prices + Save to Firebase (Fixed)
 async function refreshPortfolioPrices() {
   const btn = event.currentTarget;
-  const original = btn.innerHTML;
-  btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Updating...`;
+  const originalText = btn.innerHTML;
+  btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Updating Prices...`;
   btn.disabled = true;
+
+  let updatedCount = 0;
 
   try {
     for (let item of portfolioItems) {
       let newPrice = null;
 
       if (item.type === "MutualFund" && item.scheme_code) {
+        console.log("Fetching NAV for:", item.name, "scheme_code:", item.scheme_code);
         newPrice = await fetchMFNav(item.scheme_code);
-      } else if (item.type === "Equity" && item.name) {
+      } 
+      else if (item.type === "Equity" && item.name) {
         newPrice = await fetchEquityLivePrice(item.name);
       }
 
       if (newPrice && newPrice > 0) {
         item.current_price = newPrice;
+        updatedCount++;
+        console.log(`Updated ${item.name} → ₹${newPrice}`);
+      } else {
+        console.warn(`No price update for ${item.name}`);
       }
     }
 
-    // Save updated prices back to Firebase (prevents duplicates)
+    // Save updated prices back to Firebase
     await savePortfolioToFirebase();
 
     renderPortfolioTable();
     calculatePortfolioSummary();
 
-    alert("✅ Prices updated and saved to Firebase!");
-  } catch (e) {
-    console.error(e);
-    alert("Refresh failed");
+    alert(`✅ ${updatedCount} prices updated successfully!`);
+  } catch (error) {
+    console.error("Refresh failed:", error);
+    alert("Some prices could not be updated. Check console.");
   } finally {
-    btn.innerHTML = original;
+    btn.innerHTML = originalText;
     btn.disabled = false;
   }
 }
@@ -1672,10 +1680,16 @@ async function fetchMFNav(schemeCode) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ scheme_code: schemeCode })
     });
+
+    if (!res.ok) {
+      console.error("Backend error:", await res.text());
+      return null;
+    }
+
     const data = await res.json();
     return data.success && data.nav ? parseFloat(data.nav) : null;
   } catch (e) {
-    console.error("MF NAV fetch failed", e);
+    console.error("MF NAV fetch failed for", schemeCode, e);
     return null;
   }
 }
