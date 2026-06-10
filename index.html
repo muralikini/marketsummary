@@ -424,6 +424,43 @@
       </div>
     </div>
 
+    <!-- Portfolio Summary -->
+<div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+  
+  <!-- Total Net Worth -->
+  <div class="bg-zinc-950 rounded-xl p-5 col-span-2 md:col-span-1">
+    <div class="flex justify-between items-center mb-1">
+      <p class="text-zinc-400 text-sm">Total Net Worth</p>
+      <button onclick="toggleNetWorthVisibility()" class="text-zinc-400 hover:text-white">
+        <i id="networth-eye" class="fas fa-eye-slash"></i>
+      </button>
+    </div>
+    <p id="total-networth" class="text-3xl font-bold text-emerald-400 hidden">₹0</p>
+    <p id="total-networth-hidden" class="text-3xl font-bold text-emerald-400">••••••</p>
+  </div>
+
+  <div class="bg-zinc-950 rounded-xl p-5">
+    <p class="text-zinc-400 text-sm">Equity + MF</p>
+    <p id="equity-value" class="text-2xl font-bold">₹0</p>
+  </div>
+
+  <div class="bg-zinc-950 rounded-xl p-5">
+    <p class="text-zinc-400 text-sm">Fixed Income</p>
+    <p id="fixed-value" class="text-2xl font-bold">₹0</p>
+  </div>
+
+  <div class="bg-zinc-950 rounded-xl p-5">
+    <p class="text-zinc-400 text-sm">Physical Assets</p>
+    <p id="physical-value" class="text-2xl font-bold">₹0</p>
+  </div>
+
+  <div class="bg-zinc-950 rounded-xl p-5">
+    <p class="text-zinc-400 text-sm">Cash & Others</p>
+    <p id="cash-value" class="text-2xl font-bold">₹0</p>
+  </div>
+
+</div>
+
   </div>
 
   <!-- Portfolio Modal -->
@@ -725,6 +762,18 @@
       renderWatchlist();
       select.value = '';
     }
+
+    function toggleNetWorthVisibility() {
+  netWorthVisible = !netWorthVisible;
+  
+  const eyeIcon = document.getElementById('networth-eye');
+  if (eyeIcon) {
+    eyeIcon.classList.toggle('fa-eye-slash', !netWorthVisible);
+    eyeIcon.classList.toggle('fa-eye', netWorthVisible);
+  }
+
+  calculatePortfolioSummary(); // Refresh display
+}
 
     function renderWatchlist() {
       const container = document.getElementById('watchlist');
@@ -1334,28 +1383,54 @@ function selectMutualFund(schemeCode, name) {
   if (suggestions) suggestions.classList.add('hidden');
 }
 
-   function calculatePortfolioSummary() {
-  let total = 0, equity = 0, fixed = 0, physical = 0;
+   let netWorthVisible = false; // Default = hidden
+
+function calculatePortfolioSummary() {
+  let total = 0;
+  let equityMF = 0;
+  let fixed = 0;
+  let physical = 0;
+  let cashOthers = 0;
 
   portfolioItems.forEach(item => {
-    const value = item.quantity * (item.current_price || item.avg_price || 0);
+    const value = (item.quantity || 0) * (item.current_price || item.avg_price || 0);
     total += value;
-    if (["Equity", "MutualFund"].includes(item.type)) equity += value;
-    else if (["FD", "Bank"].includes(item.type)) fixed += value;
-    else physical += value;
+
+    if (["Equity", "MutualFund"].includes(item.type)) {
+      equityMF += value;
+    } else if (["FD", "Bank"].includes(item.type)) {
+      fixed += value;
+    } else if (["Gold", "RealEstate"].includes(item.type)) {
+      physical += value;
+    } else {
+      cashOthers += value;
+    }
   });
 
-  const totalEl = document.getElementById('total-portfolio-value');
-  const equityEl = document.getElementById('equity-value');
-  const fixedEl = document.getElementById('fixed-value');
-  const physicalEl = document.getElementById('physical-value');
+  // Update values
+  document.getElementById('equity-value').textContent = `₹${equityMF.toLocaleString('en-IN')}`;
+  document.getElementById('fixed-value').textContent = `₹${fixed.toLocaleString('en-IN')}`;
+  document.getElementById('physical-value').textContent = `₹${physical.toLocaleString('en-IN')}`;
+  document.getElementById('cash-value').textContent = `₹${cashOthers.toLocaleString('en-IN')}`;
 
-  if (totalEl) totalEl.textContent = `₹${total.toLocaleString('en-IN')}`;
-  if (equityEl) equityEl.textContent = `₹${equity.toLocaleString('en-IN')}`;
-  if (fixedEl) fixedEl.textContent = `₹${fixed.toLocaleString('en-IN')}`;
-  if (physicalEl) physicalEl.textContent = `₹${physical.toLocaleString('en-IN')}`;
+  // Net Worth
+  const networthEl = document.getElementById('total-networth');
+  const hiddenEl = document.getElementById('total-networth-hidden');
+
+  if (networthEl) networthEl.textContent = `₹${total.toLocaleString('en-IN')}`;
+  if (hiddenEl) hiddenEl.textContent = netWorthVisible ? `₹${total.toLocaleString('en-IN')}` : '••••••';
+
+  // Show/hide based on toggle
+  if (networthEl && hiddenEl) {
+    if (netWorthVisible) {
+      networthEl.classList.remove('hidden');
+      hiddenEl.classList.add('hidden');
+    } else {
+      networthEl.classList.add('hidden');
+      hiddenEl.classList.remove('hidden');
+    }
+  }
 }
-
     function addPortfolioItem() {
       showPortfolioModal();
     }
