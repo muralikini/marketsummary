@@ -435,6 +435,17 @@
   </div>
 
   <script>
+
+    // Debounce helper function
+    function debounce(func, delay) {
+      let timeoutId;
+      return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          func.apply(this, args);
+        }, delay);
+      };
+    }
     // ==================== DATA ====================
     const equityData = [
       {year:2025, n50:12.4, mid:24.6, small:31.2, n250:18.4, gold:19.8, silver:28.5, cpse:22.1},
@@ -842,15 +853,56 @@
       // ==================== MUTUAL FUNDS JSON ====================
     let allMutualFunds = [];
 
-    async function loadMutualFunds() {
+   async function loadMutualFunds() {
+  const CACHE_KEY = "mutual_funds_cache";
+  const CACHE_VERSION = "v1"; // Change this when you update the JSON file
+  const cachedData = localStorage.getItem(CACHE_KEY);
+
+  // Try to use cached data first
+  if (cachedData) {
+    try {
+      const parsed = JSON.parse(cachedData);
+      
+      // Check if cache version matches
+      if (parsed.version === CACHE_VERSION && Array.isArray(parsed.data)) {
+        allMutualFunds = parsed.data;
+        console.log(`✅ Loaded ${allMutualFunds.length} mutual funds from cache (fast)`);
+        return;
+      }
+    } catch (e) {
+      console.warn("Cache corrupted, will reload from file");
+      localStorage.removeItem(CACHE_KEY);
+    }
+  }
+
+  // If no valid cache, fetch from file
   try {
+    console.log("Loading mutual funds from JSON file (first time or cache miss)...");
     const response = await fetch('./mutual-funds.json');
-    if (!response.ok) throw new Error('File not found');
+    
+    if (!response.ok) throw new Error("Failed to load mutual-funds.json");
+
     allMutualFunds = await response.json();
-    console.log(`✅ Loaded ${allMutualFunds.length} mutual funds`);
+
+    // Save to localStorage for next time
+    const cacheObject = {
+      version: CACHE_VERSION,
+      data: allMutualFunds,
+      savedAt: new Date().toISOString()
+    };
+
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheObject));
+    
+    console.log(`✅ Loaded and cached ${allMutualFunds.length} mutual funds`);
+
   } catch (error) {
-    console.error('Failed to load mutual-funds.json', error);
-    allMutualFunds = [];
+    console.error("Failed to load mutual funds:", error);
+    
+    // Fallback to small list if everything fails
+    allMutualFunds = [
+      { name: "Parag Parikh Flexi Cap Fund Direct Growth", scheme_code: "122639" },
+      { name: "Motilal Oswal Nasdaq 100 FoF Direct Growth", scheme_code: "120503" }
+    ];
   }
 }
 
@@ -1179,10 +1231,49 @@ function editPortfolioItem(index) {
   modal.classList.remove('hidden');
 }
 
+// Debounced filter function (300ms delay)
+const debouncedFilterMutualFunds = debounce(function(searchTerm) {
+  const suggestionsBox = document.getElementById('mf-suggestions');
+  const hiddenName = document.getElementById('p-name');
+  const hiddenCode = document.getElementById('p-scheme-code');
+
+  if (!searchTerm || searchTerm.length < 2) {
+    if (suggestionsBox) suggestionsBox.classList.add('hidden');
+    return;
+  }
+
+  // Filter and limit results for performance
+  const filtered = allMutualFunds
+    .filter(mf => mf.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    .slice(0, 30); // Show only top 30 matches
+
+  if (!suggestionsBox) return;
+
+  if (filtered.length === 0) {
+    suggestionsBox.innerHTML = `<div class="p-3 text-zinc-400 text-sm">No matching funds found</div>`;
+    suggestionsBox.classList.remove('hidden');
+    return;
+  }
+
+  suggestionsBox.innerHTML = filtered.map(mf => `
+    <div onclick="selectMutualFund('${mf.scheme_code}', '${mf.name.replace(/'/g, "\\'")}')" 
+         class="p-3 hover:bg-zinc-700 cursor-pointer text-sm border-b border-zinc-700 last:border-b-0">
+      ${mf.name}
+    </div>
+  `).join('');
+
+  suggestionsBox.classList.remove('hidden');
+}, 300); // 300ms debounce delay
+
 
 let selectedMF = null;
 
+// Original function name still works (for backward compatibility)
 function filterMutualFunds(searchTerm) {
+  debouncedFilterMutualFunds(searchTerm);
+}
+
+/*function filterMutualFunds(searchTerm) {
   const suggestionsBox = document.getElementById('mf-suggestions');
   const hiddenName = document.getElementById('p-name');
   const hiddenCode = document.getElementById('p-scheme-code');
@@ -1210,7 +1301,7 @@ function filterMutualFunds(searchTerm) {
   `).join('');
 
   suggestionsBox.classList.remove('hidden');
-}
+}*/
 
 
 
@@ -1420,7 +1511,7 @@ function showPortfolioModal() {
 
   if (!hiddenName || !hiddenName.value) {
     alert("Please search and select a Mutual Fund");
-    return;
+    return;nnu
   }
   name = hiddenName.value;
   schemeCode = hiddenCode.value;
