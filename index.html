@@ -1051,7 +1051,7 @@ async function fetchLiveNiftyPrice(stockCode, elementId) {
 
 let portfolioItems = [];
 
-    async function loadPortfolio() {
+  async function loadPortfolio() {
   try {
     const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
     const res = await fetch(`${BACKEND_URL}/api/portfolio`);
@@ -1062,9 +1062,11 @@ let portfolioItems = [];
       calculatePortfolioSummary();
     }
   } catch (e) {
-    console.error("Failed to load portfolio from Firebase", e);
+    console.error("Failed to load portfolio", e);
   }
 }
+
+
     function renderPortfolioTable() {
   const tbody = document.getElementById('portfolio-table');
   tbody.innerHTML = '';
@@ -1200,13 +1202,13 @@ let portfolioItems = [];
   const quantity = parseFloat(document.getElementById('p-quantity').value) || 0;
   const avg_price = parseFloat(document.getElementById('p-avgprice').value) || 0;
 
-  const item = { 
-    type, 
-    name, 
-    quantity, 
-    avg_price, 
+  const item = {
+    type,
+    name,
+    quantity,
+    avg_price,
     scheme_code: schemeCode,
-    current_price: avg_price 
+    current_price: avg_price
   };
 
   try {
@@ -1218,21 +1220,19 @@ let portfolioItems = [];
     });
 
     closePortfolioModal();
-    loadPortfolio(); // Refresh from Firebase
+    await loadPortfolio(); // reload from Firebase (no duplicates)
   } catch (e) {
-    alert("Failed to save to Firebase");
+    alert("Failed to save");
     console.error(e);
   }
 }
 
-// Refresh with live prices
+// Refresh Prices + Save to Firebase (Fixed)
 async function refreshPortfolioPrices() {
   const btn = event.currentTarget;
-  const originalHTML = btn.innerHTML;
+  const original = btn.innerHTML;
   btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Updating...`;
   btn.disabled = true;
-
-  let updatedCount = 0;
 
   try {
     for (let item of portfolioItems) {
@@ -1244,40 +1244,35 @@ async function refreshPortfolioPrices() {
         newPrice = await fetchEquityLivePrice(item.name);
       }
 
-      if (newPrice !== null && newPrice > 0) {
+      if (newPrice && newPrice > 0) {
         item.current_price = newPrice;
-        updatedCount++;
       }
     }
 
-    // Save updated portfolio back to Firebase
+    // Save updated prices back to Firebase (prevents duplicates)
     await savePortfolioToFirebase();
 
     renderPortfolioTable();
     calculatePortfolioSummary();
 
-    alert(`✅ ${updatedCount} prices updated and saved to Firebase!`);
+    alert("✅ Prices updated and saved to Firebase!");
   } catch (e) {
     console.error(e);
-    alert("Some prices could not be updated. Check console.");
+    alert("Refresh failed");
   } finally {
-    btn.innerHTML = originalHTML;
+    btn.innerHTML = original;
     btn.disabled = false;
   }
 }
 
 // Save entire portfolio to Firebase
 async function savePortfolioToFirebase() {
-  try {
-    const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
-    await fetch(`${BACKEND_URL}/api/portfolio/bulk`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items: portfolioItems })
-    });
-  } catch (e) {
-    console.error("Failed to save portfolio to Firebase", e);
-  }
+  const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
+  await fetch(`${BACKEND_URL}/api/portfolio/bulk`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items: portfolioItems })
+  });
 }
 
 async function fetchEquityLivePrice(stockCode) {
@@ -1355,22 +1350,23 @@ async function fetchLivePrice(stockCode) {
   }
 }
 
-  async function deletePortfolioItem(index) {
-  if (!confirm("Delete this asset from Firebase?")) return;
+ // Delete from Firebase
+async function deletePortfolioItem(index) {
+  if (!confirm("Delete this asset?")) return;
 
-  const itemToDelete = portfolioItems[index];
+  const item = portfolioItems[index];
 
   try {
     const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
     await fetch(`${BACKEND_URL}/api/portfolio`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: itemToDelete.name, type: itemToDelete.type })
+      body: JSON.stringify({ type: item.type, name: item.name })
     });
 
-    loadPortfolio(); // Refresh from Firebase
+    await loadPortfolio();
   } catch (e) {
-    alert("Failed to delete from Firebase");
+    alert("Delete failed");
     console.error(e);
   }
 }
