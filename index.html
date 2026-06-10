@@ -845,15 +845,15 @@
     async function loadMutualFunds() {
       try {
         const response = await fetch('./mutual-funds.json');
-        if (!response.ok) throw new Error('JSON file not found');
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        
         allMutualFunds = await response.json();
-        console.log(`✅ Successfully loaded ${allMutualFunds.length} mutual funds`);
+        
+        console.log(`✅ Loaded ${allMutualFunds.length} mutual funds successfully`);
       } catch (error) {
         console.error('❌ Failed to load mutual-funds.json:', error);
-        allMutualFunds = [
-          { name: "Parag Parikh Flexi Cap Fund Direct Growth", scheme_code: "122639" },
-          { name: "Motilal Oswal Nasdaq 100 FoF Direct Growth", scheme_code: "120503" }
-        ];
+        allMutualFunds = [];
+        alert("Could not load mutual-funds.json. Make sure the file is in the same folder as index.html");
       }
     }
 
