@@ -1203,7 +1203,7 @@ function editPortfolioItem(index) {
   const modal = document.getElementById('portfolio-modal');
   const form = document.getElementById('portfolio-form');
 
-  // Build modal HTML
+  // Build the modal
   form.innerHTML = `
     <select id="p-type" onchange="handlePortfolioTypeChange()" 
             class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
@@ -1220,7 +1220,7 @@ function editPortfolioItem(index) {
 
     <input id="p-quantity" type="number" step="0.01" placeholder="Quantity / Units" 
            class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
-
+    
     <input id="p-avgprice" type="number" step="0.01" placeholder="Average Purchase Price / NAV" 
            class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-6">
 
@@ -1236,37 +1236,37 @@ function editPortfolioItem(index) {
     </div>
   `;
 
-  // Set type first
+  // Set type
   document.getElementById('p-type').value = item.type;
 
-  // Rebuild name input based on type
+  // Create the correct input (searchable for MF)
   handlePortfolioTypeChange();
 
-  // Now set the values (after the inputs are created)
+  // Pre-fill values after DOM is ready
   setTimeout(() => {
-    // Set name
     if (item.type === "MutualFund") {
-      const select = document.getElementById('p-name');
-      if (select && item.scheme_code) {
-        for (let option of select.options) {
-          if (option.value.startsWith(item.scheme_code + "|")) {
-            option.selected = true;
-            break;
-          }
-        }
-      }
+      const searchInput = document.getElementById('p-name-search');
+      const hiddenName  = document.getElementById('p-name');
+      const hiddenCode  = document.getElementById('p-scheme-code');
+
+      if (searchInput) searchInput.value = item.name || "";
+      if (hiddenName)  hiddenName.value  = item.name || "";
+      if (hiddenCode)  hiddenCode.value  = item.scheme_code || "";
+
     } else {
+      // Equity and other types
       const nameInput = document.getElementById('p-name');
       if (nameInput) nameInput.value = item.name || "";
     }
 
-    // Set quantity and avg price
+    // Fill quantity and avg price for all types
     const qtyInput = document.getElementById('p-quantity');
     const avgInput = document.getElementById('p-avgprice');
 
     if (qtyInput) qtyInput.value = item.quantity || "";
     if (avgInput) avgInput.value = item.avg_price || "";
-  }, 50);
+
+  }, 100); // Slightly longer timeout for safety
 
   modal.classList.remove('hidden');
 }
