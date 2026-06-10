@@ -385,55 +385,62 @@
       </div>
     </div>
     <!-- ==================== PORTFOLIO TAB ==================== -->
-    <div id="tab-3-content" class="hidden">
-      <div class="bg-zinc-900 rounded-2xl p-6">
-        <div class="flex justify-between items-center mb-6">
-          <h3 class="text-2xl font-semibold">My Complete Portfolio</h3>
-          <button onclick="addPortfolioItem()" class="bg-emerald-600 hover:bg-emerald-700 px-6 py-2 rounded-xl flex items-center gap-2">
-            <i class="fas fa-plus"></i> Add Asset
-          </button>
-        </div>
-
-        <!-- Summary -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div class="bg-zinc-950 rounded-xl p-5">
-            <p class="text-zinc-400 text-sm">Total Value</p>
-            <p id="total-portfolio-value" class="text-3xl font-bold text-emerald-400">₹0</p>
-          </div>
-          <div class="bg-zinc-950 rounded-xl p-5">
-            <p class="text-zinc-400 text-sm">Equity + MF</p>
-            <p id="equity-value" class="text-2xl font-bold">₹0</p>
-          </div>
-          <div class="bg-zinc-950 rounded-xl p-5">
-            <p class="text-zinc-400 text-sm">Fixed Income</p>
-            <p id="fixed-value" class="text-2xl font-bold">₹0</p>
-          </div>
-          <div class="bg-zinc-950 rounded-xl p-5">
-            <p class="text-zinc-400 text-sm">Physical Assets</p>
-            <p id="physical-value" class="text-2xl font-bold">₹0</p>
-          </div>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="border-b border-zinc-700 text-zinc-400">
-                <th class="text-left py-3">Type</th>
-                <th class="text-left">Name</th>
-                <th class="text-right">Qty</th>
-                <th class="text-right">Avg Price</th>
-                <th class="text-right">Current Price</th>
-                <th class="text-right">Value</th>
-                <th class="text-right">P&amp;L %</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="portfolio-table"></tbody>
-          </table>
-        </div>
+<div id="tab-3-content" class="hidden">
+  <div class="bg-zinc-900 rounded-2xl p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-2xl font-semibold">My Complete Portfolio</h3>
+      <div class="flex gap-3">
+        <button onclick="refreshPortfolioPrices()" 
+                class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-xl text-sm font-medium">
+          <i class="fas fa-sync-alt"></i> Refresh Prices
+        </button>
+        <button onclick="addPortfolioItem()" 
+                class="bg-emerald-600 hover:bg-emerald-700 px-6 py-2 rounded-xl flex items-center gap-2">
+          <i class="fas fa-plus"></i> Add Asset
+        </button>
       </div>
     </div>
+
+    <!-- Summary -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-zinc-950 rounded-xl p-5">
+        <p class="text-zinc-400 text-sm">Total Value</p>
+        <p id="total-portfolio-value" class="text-3xl font-bold text-emerald-400">₹0</p>
+      </div>
+      <div class="bg-zinc-950 rounded-xl p-5">
+        <p class="text-zinc-400 text-sm">Equity + MF</p>
+        <p id="equity-value" class="text-2xl font-bold">₹0</p>
+      </div>
+      <div class="bg-zinc-950 rounded-xl p-5">
+        <p class="text-zinc-400 text-sm">Fixed Income</p>
+        <p id="fixed-value" class="text-2xl font-bold">₹0</p>
+      </div>
+      <div class="bg-zinc-950 rounded-xl p-5">
+        <p class="text-zinc-400 text-sm">Physical Assets</p>
+        <p id="physical-value" class="text-2xl font-bold">₹0</p>
+      </div>
+    </div>
+
+    <!-- Portfolio Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700 text-zinc-400">
+            <th class="text-left py-3">Type</th>
+            <th class="text-left">Name</th>
+            <th class="text-right">Qty</th>
+            <th class="text-right">Avg Price</th>
+            <th class="text-right">Current Price</th>
+            <th class="text-right">Value</th>
+            <th class="text-right">P&amp;L %</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="portfolio-table" class="text-zinc-300"></tbody>
+      </table>
+    </div>
   </div>
+</div>
 
   <!-- Portfolio Modal -->
   <div id="portfolio-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
@@ -1191,7 +1198,36 @@ async function savePortfolioItem(editIndex = null) {
   }
 }
 
-// Fetch Live Price using Breeze API
+// Refresh all Equity & MF prices
+async function refreshPortfolioPrices() {
+  const refreshBtn = document.querySelector('button[onclick="refreshPortfolioPrices()"]');
+  const originalText = refreshBtn.innerHTML;
+  refreshBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Updating...`;
+  refreshBtn.disabled = true;
+
+  try {
+    for (let item of portfolioItems) {
+      if (["Equity", "MutualFund"].includes(item.type) && item.name) {
+        const stockCode = item.name.split(' ')[0].trim(); // e.g., "MOTNAS"
+        const livePrice = await fetchLivePrice(stockCode);
+        if (livePrice) {
+          item.current_price = livePrice;
+        }
+      }
+    }
+
+    renderPortfolioTable();
+    calculatePortfolioSummary();
+    alert("Prices updated successfully!");
+  } catch (e) {
+    alert("Some prices could not be updated");
+  } finally {
+    refreshBtn.innerHTML = originalText;
+    refreshBtn.disabled = false;
+  }
+}
+
+// Fetch single live price
 async function fetchLivePrice(stockCode) {
   try {
     const apiKey = document.getElementById('apiKey').value.trim();
@@ -1215,7 +1251,7 @@ async function fetchLivePrice(stockCode) {
     const data = await res.json();
     return data.success ? data.ltp : null;
   } catch (e) {
-    console.error(e);
+    console.error("Price fetch failed for", stockCode);
     return null;
   }
 }
