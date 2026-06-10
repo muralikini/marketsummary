@@ -1501,65 +1501,69 @@ function showPortfolioModal() {
     }
 
   async function savePortfolioItem(isEdit = false) {
-  const type = document.getElementById('p-type').value;
-  let name = "";
-  let schemeCode = null;
+  console.log("savePortfolioItem called, isEdit =", isEdit);
 
-  if (type === "MutualFund") {
-  const hiddenName = document.getElementById('p-name');
-  const hiddenCode = document.getElementById('p-scheme-code');
+  const type = document.getElementById('p-type')?.value;
+  const nameInput = document.getElementById('p-name');
+  const qtyInput = document.getElementById('p-quantity');
+  const avgInput = document.getElementById('p-avgprice');
 
-  if (!hiddenName || !hiddenName.value) {
-    alert("Please search and select a Mutual Fund");
-    return;nnu
-  }
-  name = hiddenName.value;
-  schemeCode = hiddenCode.value;
-  }
-  else {
-    const nameInput = document.getElementById('p-name');
-    if (!nameInput || !nameInput.value.trim()) {
-      alert("Please enter asset name");
-      return;
-    }
-    name = nameInput.value.trim();
-  }
-
-  const quantity = parseFloat(document.getElementById('p-quantity').value) || 0;
-  const avg_price = parseFloat(document.getElementById('p-avgprice').value) || 0;
-
-  if (quantity <= 0 || avg_price <= 0) {
-    alert("Quantity and Average Price must be greater than 0");
+  if (!nameInput || !qtyInput || !avgInput) {
+    console.error("One or more form fields are missing");
+    alert("Form error. Please close the modal and try again.");
     return;
   }
 
-  const updatedItem = {
-    type,
-    name,
-    quantity,
-    avg_price,
-    scheme_code: schemeCode,
+  const name = nameInput.value.trim();
+  const quantity = parseFloat(qtyInput.value);
+  const avg_price = parseFloat(avgInput.value);
+
+  console.log("Values:", { type, name, quantity, avg_price });
+
+  // Validation
+  if (!name) {
+    alert("Please enter Asset Name");
+    return;
+  }
+  if (isNaN(quantity) || quantity <= 0) {
+    alert("Please enter a valid Quantity");
+    return;
+  }
+  if (isNaN(avg_price) || avg_price <= 0) {
+    alert("Please enter a valid Average Price");
+    return;
+  }
+
+  const item = {
+    type: type,
+    name: name,
+    quantity: quantity,
+    avg_price: avg_price,
+    scheme_code: null,
     current_price: avg_price
   };
 
   try {
     const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
 
-    // Always use POST — backend handles create or update using stable ID
-    await fetch(`${BACKEND_URL}/api/portfolio`, {
+    const response = await fetch(`${BACKEND_URL}/api/portfolio`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updatedItem)
+      body: JSON.stringify(item)
     });
 
-    closePortfolioModal();
-    currentEditIndex = null;
-    await loadPortfolio();           // Refresh from Firebase
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Server error: ${response.status} - ${error}`);
+    }
 
-    alert(isEdit ? "✅ Asset updated successfully!" : "✅ Asset added successfully!");
+    closePortfolioModal();
+    await loadPortfolio();
+
+    alert("✅ New asset added successfully!");
   } catch (error) {
-    console.error("Save failed:", error);
-    alert("Failed to save. Please check console.");
+    console.error("Failed to save:", error);
+    alert("Failed to save. Check console (F12) for details.");
   }
 }
 
