@@ -1111,6 +1111,7 @@ function editPortfolioItem(index) {
   const modal = document.getElementById('portfolio-modal');
   const form = document.getElementById('portfolio-form');
 
+  // Build modal HTML
   form.innerHTML = `
     <select id="p-type" onchange="handlePortfolioTypeChange()" 
             class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
@@ -1143,30 +1144,81 @@ function editPortfolioItem(index) {
     </div>
   `;
 
-  // Pre-fill values
+  // Set type first
   document.getElementById('p-type').value = item.type;
+
+  // Rebuild name input based on type
   handlePortfolioTypeChange();
 
-  // Fill name field
-  if (item.type === "MutualFund") {
-    const select = document.getElementById('p-name');
-    if (select) {
-      // Try to select the matching option
-      for (let option of select.options) {
-        if (option.value.includes(item.scheme_code)) {
-          option.selected = true;
-          break;
+  // Now set the values (after the inputs are created)
+  setTimeout(() => {
+    // Set name
+    if (item.type === "MutualFund") {
+      const select = document.getElementById('p-name');
+      if (select && item.scheme_code) {
+        for (let option of select.options) {
+          if (option.value.startsWith(item.scheme_code + "|")) {
+            option.selected = true;
+            break;
+          }
         }
       }
+    } else {
+      const nameInput = document.getElementById('p-name');
+      if (nameInput) nameInput.value = item.name || "";
     }
-  } else {
-    document.getElementById('p-name').value = item.name;
-  }
 
-  document.getElementById('p-quantity').value = item.quantity;
-  document.getElementById('p-avgprice').value = item.avg_price;
+    // Set quantity and avg price
+    const qtyInput = document.getElementById('p-quantity');
+    const avgInput = document.getElementById('p-avgprice');
+
+    if (qtyInput) qtyInput.value = item.quantity || "";
+    if (avgInput) avgInput.value = item.avg_price || "";
+  }, 50);
 
   modal.classList.remove('hidden');
+}
+
+
+let selectedMF = null;
+
+function filterMutualFunds(searchTerm) {
+  const suggestionsBox = document.getElementById('mf-suggestions');
+  const hiddenName = document.getElementById('p-name');
+  const hiddenCode = document.getElementById('p-scheme-code');
+
+  if (!searchTerm || searchTerm.length < 2) {
+    suggestionsBox.classList.add('hidden');
+    return;
+  }
+
+  const filtered = allMutualFunds
+    .filter(mf => mf.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    .slice(0, 50); // Show only top 50 matches for speed
+
+  if (filtered.length === 0) {
+    suggestionsBox.innerHTML = `<div class="p-3 text-zinc-400">No matches found</div>`;
+    suggestionsBox.classList.remove('hidden');
+    return;
+  }
+
+  suggestionsBox.innerHTML = filtered.map(mf => `
+    <div onclick="selectMutualFund('${mf.scheme_code}', '${mf.name.replace(/'/g, "\\'")}')" 
+         class="p-3 hover:bg-zinc-700 cursor-pointer text-sm border-b border-zinc-700">
+      ${mf.name}
+    </div>
+  `).join('');
+
+  suggestionsBox.classList.remove('hidden');
+}
+
+
+
+function selectMutualFund(schemeCode, name) {
+  document.getElementById('p-name').value = name;
+  document.getElementById('p-scheme-code').value = schemeCode;
+  document.getElementById('p-name-search').value = name;
+  document.getElementById('mf-suggestions').classList.add('hidden');
 }
 
    function calculatePortfolioSummary() {
@@ -1363,15 +1415,17 @@ function showPortfolioModal() {
   let schemeCode = null;
 
   if (type === "MutualFund") {
-    const select = document.getElementById('p-name');
-    if (!select || !select.value) {
-      alert("Please select a Mutual Fund");
-      return;
-    }
-    const parts = select.value.split('|');
-    schemeCode = parts[0];
-    name = parts[1];
-  } else {
+  const hiddenName = document.getElementById('p-name');
+  const hiddenCode = document.getElementById('p-scheme-code');
+
+  if (!hiddenName || !hiddenName.value) {
+    alert("Please search and select a Mutual Fund");
+    return;
+  }
+  name = hiddenName.value;
+  schemeCode = hiddenCode.value;
+  }
+  else {
     const nameInput = document.getElementById('p-name');
     if (!nameInput || !nameInput.value.trim()) {
       alert("Please enter asset name");
