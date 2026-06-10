@@ -1070,32 +1070,31 @@ let portfolioItems = [];
     }
 
     function renderPortfolioTable() {
-      const tbody = document.getElementById('portfolio-table');
-      tbody.innerHTML = '';
+  const tbody = document.getElementById('portfolio-table');
+  tbody.innerHTML = '';
 
-      portfolioItems.forEach((item, index) => {
-        const currentPrice = item.current_price || item.avg_price;
-        const value = item.quantity * currentPrice;
-        const pnl = item.current_price ? ((item.current_price - item.avg_price) / item.avg_price * 100).toFixed(2) : '0';
+  portfolioItems.forEach((item, i) => {
+    const current = item.current_price || item.avg_price;
+    const value = (item.quantity * current).toFixed(2);
+    const pnl = item.current_price ? ((current - item.avg_price) / item.avg_price * 100).toFixed(2) : '0';
 
-        const row = document.createElement('tr');
-        row.className = "border-b border-zinc-800 hover:bg-zinc-800";
-        row.innerHTML = `
-          <td class="py-3">${item.type}</td>
-          <td class="py-3">${item.name}</td>
-          <td class="py-3 text-right">${item.quantity}</td>
-          <td class="py-3 text-right">₹${item.avg_price}</td>
-          <td class="py-3 text-right">₹${currentPrice}</td>
-          <td class="py-3 text-right font-medium">₹${value.toFixed(2)}</td>
-          <td class="py-3 text-right ${pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}">${pnl}%</td>
-          <td class="py-3">
-            <button onclick="editPortfolioItem(${index})" class="text-blue-400 mr-3">Edit</button>
-            <button onclick="deletePortfolioItem(${index})" class="text-red-400">Delete</button>
-          </td>
-        `;
-        tbody.appendChild(row);
-      });
-    }
+    const row = document.createElement('tr');
+    row.className = "border-b border-zinc-800 hover:bg-zinc-800";
+    row.innerHTML = `
+      <td class="py-3">${item.type}</td>
+      <td class="py-3">${item.name}</td>
+      <td class="py-3 text-right">${item.quantity}</td>
+      <td class="py-3 text-right">₹${item.avg_price}</td>
+      <td class="py-3 text-right">₹${current}</td>
+      <td class="py-3 text-right font-medium">₹${value}</td>
+      <td class="py-3 text-right ${pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}">${pnl}%</td>
+      <td class="py-3 text-center">
+        <button onclick="deletePortfolioItem(${i})" class="text-red-400 hover:text-red-500">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+}
 
     function calculatePortfolioSummary() {
       let total = 0, equity = 0, fixed = 0, physical = 0;
@@ -1122,83 +1121,128 @@ let portfolioItems = [];
       showPortfolioModal(portfolioItems[index], index);
     }
 
-    function showPortfolioModal(item = null, editIndex = null) {
-      const modal = document.getElementById('portfolio-modal');
-      const form = document.getElementById('portfolio-form');
+    // ==================== PORTFOLIO FUNCTIONS (UPDATED) ====================
+let portfolioItems = [];
 
-      form.innerHTML = `
-        <select id="p-type" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
-          <option value="Equity">Equity</option>
-          <option value="MutualFund">Mutual Fund</option>
-          <option value="FD">Fixed Deposit</option>
-          <option value="Bank">Bank Account</option>
-          <option value="Gold">Physical Gold</option>
-          <option value="RealEstate">Real Estate</option>
-          <option value="Cash">Cash</option>
-          <option value="Other">Other</option>
-        </select>
-        <input id="p-name" placeholder="Name / Company / Scheme" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
-        <input id="p-quantity" type="number" placeholder="Quantity / Units" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
-        <input id="p-avgprice" type="number" placeholder="Average Price / NAV" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-6">
-        
-        <div class="flex gap-3">
-          <button onclick="savePortfolioItem(${editIndex})" class="flex-1 bg-emerald-600 hover:bg-emerald-700 py-3 rounded-xl">Save</button>
-          <button onclick="closePortfolioModal()" class="flex-1 bg-zinc-700 hover:bg-zinc-600 py-3 rounded-xl">Cancel</button>
-        </div>
-      `;
+function showPortfolioModal(item = null) {
+  const modal = document.getElementById('portfolio-modal');
+  const form = document.getElementById('portfolio-form');
 
-      if (item) {
-        document.getElementById('p-type').value = item.type;
-        document.getElementById('p-name').value = item.name;
-        document.getElementById('p-quantity').value = item.quantity;
-        document.getElementById('p-avgprice').value = item.avg_price;
-      }
+  form.innerHTML = `
+    <select id="p-type" onchange="handlePortfolioTypeChange()" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
+      <option value="Equity">Equity / ETF</option>
+      <option value="MutualFund">Mutual Fund</option>
+      <option value="FD">Fixed Deposit</option>
+      <option value="Bank">Bank Account</option>
+      <option value="Gold">Physical Gold</option>
+      <option value="RealEstate">Real Estate</option>
+      <option value="Cash">Cash / Others</option>
+    </select>
 
-      modal.classList.remove('hidden');
-    }
+    <div id="name-input-container" class="mb-3"></div>
 
-    function closePortfolioModal() {
-      document.getElementById('portfolio-modal').classList.add('hidden');
-    }
+    <input id="p-quantity" type="number" step="0.01" placeholder="Quantity / Units" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
+    <input id="p-avgprice" type="number" step="0.01" placeholder="Average Purchase Price / NAV" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-6">
 
-async function savePortfolioItem(editIndex = null) {
-  const type = document.getElementById('p-type').value;
-  const name = document.getElementById('p-name').value;
-  const quantity = parseFloat(document.getElementById('p-quantity').value);
-  const avg_price = parseFloat(document.getElementById('p-avgprice').value);
+    <div class="flex gap-3">
+      <button onclick="savePortfolioItem()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 py-3 rounded-xl font-medium">Save Asset</button>
+      <button onclick="closePortfolioModal()" class="flex-1 bg-zinc-700 hover:bg-zinc-600 py-3 rounded-xl">Cancel</button>
+    </div>
+  `;
 
-  let current_price = avg_price; // default
-
-  // Auto fetch live price for Equity and Mutual Fund
-  if (["Equity", "MutualFund"].includes(type)) {
-    const stockCode = name.split(' ')[0]; // e.g. "MOTNAS"
-    current_price = await fetchLivePrice(stockCode);
+  if (item) {
+    document.getElementById('p-type').value = item.type;
+    document.getElementById('p-quantity').value = item.quantity;
+    document.getElementById('p-avgprice').value = item.avg_price;
   }
 
-  const item = {
-    type: type,
-    name: name,
-    quantity: quantity,
-    avg_price: avg_price,
-    current_price: current_price
-  };
+  handlePortfolioTypeChange();
+  modal.classList.remove('hidden');
+}
 
-  try {
-    const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
-    await fetch(`${BACKEND_URL}/api/portfolio`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(item)
-    });
+function handlePortfolioTypeChange() {
+  const type = document.getElementById('p-type').value;
+  const container = document.getElementById('name-input-container');
 
-    closePortfolioModal();
-    loadPortfolio();
-  } catch (e) {
-    alert("Failed to save item");
+  if (type === "MutualFund") {
+    container.innerHTML = `
+      <select id="p-name" onchange="updateMFSelection(this)" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
+        <option value="">Select Mutual Fund...</option>
+        ${allMutualFunds.map(mf => `
+          <option value="${mf.scheme_code}|${mf.name}">${mf.name}</option>
+        `).join('')}
+      </select>
+    `;
+  } else {
+    container.innerHTML = `
+      <input id="p-name" placeholder="Company / Asset Name" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
+    `;
   }
 }
 
+function updateMFSelection(select) {
+  if (select.value) {
+    const [schemeCode] = select.value.split('|');
+    select.dataset.schemeCode = schemeCode;
+  }
+}
+
+    function closePortfolioModal() {
+  document.getElementById('portfolio-modal').classList.add('hidden');
+}
+
+async function savePortfolioItem() {
+  const type = document.getElementById('p-type').value;
+  let name = "";
+  let schemeCode = null;
+
+  if (type === "MutualFund") {
+    const select = document.getElementById('p-name');
+    if (select.value) {
+      const parts = select.value.split('|');
+      schemeCode = parts[0];
+      name = parts[1];
+    }
+  } else {
+    name = document.getElementById('p-name').value.trim();
+  }
+
+  const quantity = parseFloat(document.getElementById('p-quantity').value) || 0;
+  const avg_price = parseFloat(document.getElementById('p-avgprice').value) || 0;
+
+  const item = { 
+    type, 
+    name, 
+    quantity, 
+    avg_price, 
+    scheme_code: schemeCode,
+    current_price: avg_price 
+  };
+
+  portfolioItems.push(item);
+  closePortfolioModal();
+  renderPortfolioTable();
+}
+
 // Refresh all Equity & MF prices
+
+let allMutualFunds = [];
+
+async function loadMutualFunds() {
+  try {
+    const response = await fetch('./mutual-funds.json');
+    if (!response.ok) throw new Error('MF JSON not found');
+    allMutualFunds = await response.json();
+    console.log(`✅ Loaded ${allMutualFunds.length} mutual funds`);
+  } catch (error) {
+    console.warn('⚠️ MF JSON fallback used', error);
+    allMutualFunds = [
+      { name: "Parag Parikh Flexi Cap Fund Direct Growth", scheme_code: "122639" },
+      { name: "Motilal Oswal Nasdaq 100 FoF Direct Growth", scheme_code: "120503" }
+    ];
+  }
+}
+
 async function refreshPortfolioPrices() {
   const refreshBtn = document.querySelector('button[onclick="refreshPortfolioPrices()"]');
   const originalText = refreshBtn.innerHTML;
@@ -1256,14 +1300,12 @@ async function fetchLivePrice(stockCode) {
   }
 }
 
-    async function deletePortfolioItem(index) {
-      if (confirm("Delete this asset?")) {
-        portfolioItems.splice(index, 1);
-        renderPortfolioTable();
-        calculatePortfolioSummary();
-      }
-    }
-
+    function deletePortfolioItem(index) {
+  if (confirm("Delete this asset?")) {
+    portfolioItems.splice(index, 1);
+    renderPortfolioTable();
+  }
+}
     // Refresh All
 function refreshAllLivePrices() {
   fetchCryptoPrice('bitcoin', 'btc-price');
@@ -1280,15 +1322,16 @@ function refreshAllLivePrices() {
 }
 
     // ==================== INITIALIZE ====================
-    window.onload = function() {
-  renderEquityTable();
-  createGoldSilverChart();
-  createRatioChart();
+    window.onload = async function() {
+      await loadMutualFunds();
+      renderEquityTable();
+      createGoldSilverChart();
+      createRatioChart();
 
-  loadScripDropdown();
-  loadSavedWatchlist();
-  loadAnalyzeDropdown();
-  loadPortfolio();
+      loadScripDropdown();
+      loadSavedWatchlist();
+      loadAnalyzeDropdown();
+      loadPortfolio();
 
   // Auto load live prices
   setTimeout(() => {
