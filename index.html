@@ -384,69 +384,53 @@
         </div>
       </div>
     </div>
-    <!-- ==================== PORTFOLIO TAB ==================== -->
-<div id="tab-3-content" class="hidden">
-  <div class="bg-zinc-900 rounded-2xl p-6">
-    <div class="flex justify-between items-center mb-6">
-      <h3 class="text-2xl font-semibold">My Complete Portfolio</h3>
-      <div class="flex gap-3">
-        <button onclick="refreshPortfolioPrices()" 
-                class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-xl text-sm font-medium">
-          <i class="fas fa-sync-alt"></i> Refresh Prices
-        </button>
-        <button onclick="addPortfolioItem()" 
-                class="bg-emerald-600 hover:bg-emerald-700 px-6 py-2 rounded-xl flex items-center gap-2">
-          <i class="fas fa-plus"></i> Add Asset
-        </button>
-      </div>
-    </div>
+<!-- ==================== PORTFOLIO TAB ==================== -->
+    <div id="tab-3-content" class="hidden">
+      <div class="bg-zinc-900 rounded-2xl p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-2xl font-semibold">My Complete Portfolio</h3>
+          <div class="flex gap-3">
+            <button onclick="refreshPortfolioPrices()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 px-5 py-2 rounded-xl">
+              <i class="fas fa-sync-alt"></i> Refresh Prices
+            </button>
+            <button onclick="showPortfolioModal()" class="flex items-center gap-2 bg-white text-zinc-900 hover:bg-zinc-100 px-5 py-2 rounded-xl font-medium">
+              <i class="fas fa-plus"></i> Add Asset
+            </button>
+          </div>
+        </div>
 
-    <!-- Summary -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-      <div class="bg-zinc-950 rounded-xl p-5">
-        <p class="text-zinc-400 text-sm">Total Value</p>
-        <p id="total-portfolio-value" class="text-3xl font-bold text-emerald-400">₹0</p>
-      </div>
-      <div class="bg-zinc-950 rounded-xl p-5">
-        <p class="text-zinc-400 text-sm">Equity + MF</p>
-        <p id="equity-value" class="text-2xl font-bold">₹0</p>
-      </div>
-      <div class="bg-zinc-950 rounded-xl p-5">
-        <p class="text-zinc-400 text-sm">Fixed Income</p>
-        <p id="fixed-value" class="text-2xl font-bold">₹0</p>
-      </div>
-      <div class="bg-zinc-950 rounded-xl p-5">
-        <p class="text-zinc-400 text-sm">Physical Assets</p>
-        <p id="physical-value" class="text-2xl font-bold">₹0</p>
-      </div>
-    </div>
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" id="portfolio-summary">
+          <!-- Populated by JS -->
+        </div>
 
-    <!-- Portfolio Table -->
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-b border-zinc-700 text-zinc-400">
-            <th class="text-left py-3">Type</th>
-            <th class="text-left">Name</th>
-            <th class="text-right">Qty</th>
-            <th class="text-right">Avg Price</th>
-            <th class="text-right">Current Price</th>
-            <th class="text-right">Value</th>
-            <th class="text-right">P&amp;L %</th>
-            <th class="text-center">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="portfolio-table" class="text-zinc-300"></tbody>
-      </table>
+        <!-- Portfolio Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-zinc-700 text-zinc-400">
+                <th class="text-left py-3">Type</th>
+                <th class="text-left py-3">Name</th>
+                <th class="text-right">Qty</th>
+                <th class="text-right">Avg Price</th>
+                <th class="text-right">Current Price</th>
+                <th class="text-right">Value (₹)</th>
+                <th class="text-right">P&L %</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="portfolio-table" class="text-zinc-200"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
   <!-- Portfolio Modal -->
-  <div id="portfolio-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+  <div id="portfolio-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
     <div class="bg-zinc-900 rounded-2xl p-6 w-full max-w-md mx-4">
-      <h3 class="text-xl font-semibold mb-4" id="modal-title">Add Asset</h3>
-      <div id="portfolio-form" class="space-y-4"></div>
+      <h3 class="text-xl font-semibold mb-5">Add / Edit Asset</h3>
+      <div id="portfolio-form"></div>
     </div>
   </div>
 
@@ -1198,6 +1182,134 @@ async function savePortfolioItem(editIndex = null) {
   }
 }
 
+// ==================== MUTUAL FUNDS DATA ====================
+    let allMutualFunds = [];
+
+    async function loadMutualFunds() {
+      try {
+        const response = await fetch('./mutual-funds.json');
+        if (!response.ok) throw new Error('File not found');
+        allMutualFunds = await response.json();
+        console.log(`✅ Loaded ${allMutualFunds.length} mutual funds from mutual-funds.json`);
+      } catch (error) {
+        console.warn('⚠️ Using fallback MF list:', error);
+        allMutualFunds = [
+          { name: "Parag Parikh Flexi Cap Fund Direct Growth", scheme_code: "122639" },
+          { name: "Motilal Oswal Nasdaq 100 FoF Direct Growth", scheme_code: "120503" },
+          { name: "HDFC Mid-Cap Opportunities Fund", scheme_code: "101232" }
+        ];
+      }
+    }
+
+// ==================== PORTFOLIO FUNCTIONS ====================
+    let portfolioItems = [];
+
+    function showPortfolioModal(item = null, editIndex = null) {
+      const modal = document.getElementById('portfolio-modal');
+      const form = document.getElementById('portfolio-form');
+
+      form.innerHTML = `
+        <select id="p-type" onchange="handlePortfolioTypeChange()" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
+          <option value="Equity">Equity / ETF</option>
+          <option value="MutualFund">Mutual Fund</option>
+          <option value="FD">Fixed Deposit</option>
+          <option value="Bank">Bank Account</option>
+          <option value="Gold">Physical Gold</option>
+          <option value="RealEstate">Real Estate</option>
+          <option value="Cash">Cash / Others</option>
+        </select>
+
+        <div id="name-input-container" class="mb-3"></div>
+
+        <input id="p-quantity" type="number" step="0.01" placeholder="Quantity / Units" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
+        <input id="p-avgprice" type="number" step="0.01" placeholder="Average Purchase Price / NAV" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-6">
+
+        <div class="flex gap-3">
+          <button onclick="savePortfolioItem(${editIndex})" class="flex-1 bg-emerald-600 hover:bg-emerald-700 py-3 rounded-xl font-medium">Save Asset</button>
+          <button onclick="closePortfolioModal()" class="flex-1 bg-zinc-700 hover:bg-zinc-600 py-3 rounded-xl">Cancel</button>
+        </div>
+      `;
+
+      if (item) {
+        document.getElementById('p-type').value = item.type;
+        document.getElementById('p-quantity').value = item.quantity;
+        document.getElementById('p-avgprice').value = item.avg_price;
+      }
+
+      handlePortfolioTypeChange();
+      modal.classList.remove('hidden');
+    }
+
+    function handlePortfolioTypeChange() {
+      const type = document.getElementById('p-type').value;
+      const container = document.getElementById('name-input-container');
+
+      if (type === "MutualFund") {
+        container.innerHTML = `
+          <select id="p-name" onchange="updateMFSelection(this)" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
+            <option value="">Select Mutual Fund...</option>
+            ${allMutualFunds.map(mf => `
+              <option value="${mf.scheme_code}|${mf.name}">${mf.name}</option>
+            `).join('')}
+          </select>
+        `;
+      } else {
+        container.innerHTML = `
+          <input id="p-name" placeholder="Company / Asset Name" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
+        `;
+      }
+    }
+
+    function updateMFSelection(select) {
+      if (select.value) {
+        const [schemeCode] = select.value.split('|');
+        select.dataset.schemeCode = schemeCode;
+      }
+    }
+
+    async function savePortfolioItem(editIndex = null) {
+      const type = document.getElementById('p-type').value;
+      let name = "";
+      let schemeCode = null;
+
+      if (type === "MutualFund") {
+        const select = document.getElementById('p-name');
+        if (select.value) {
+          const parts = select.value.split('|');
+          schemeCode = parts[0];
+          name = parts[1] || select.options[select.selectedIndex].text;
+        }
+      } else {
+        name = document.getElementById('p-name').value.trim();
+      }
+
+      const quantity = parseFloat(document.getElementById('p-quantity').value) || 0;
+      const avg_price = parseFloat(document.getElementById('p-avgprice').value) || 0;
+
+      const item = { type, name, quantity, avg_price, scheme_code: schemeCode };
+
+      // TODO: Send to backend
+      console.log("Saved Portfolio Item:", item);
+
+      closePortfolioModal();
+      loadPortfolio(); // Refresh table
+    }
+
+    function closePortfolioModal() {
+      document.getElementById('portfolio-modal').classList.add('hidden');
+    }
+
+    function loadPortfolio() {
+      // Dummy data for now - replace with backend fetch
+      portfolioItems = [
+        { type: "Equity", name: "MOTNAS", quantity: 1625, avg_price: 157.89, current_price: 330.89, scheme_code: null },
+        { type: "MutualFund", name: "Parag Parikh Flexi Cap Fund Direct Growth", quantity: 4395.75, avg_price: 45.2, current_price: 68.5, scheme_code: "122639" }
+      ];
+      renderPortfolioTable();
+      renderPortfolioSummary();
+    }
+
+
 // Refresh all Equity & MF prices
 async function refreshPortfolioPrices() {
   const refreshBtn = document.querySelector('button[onclick="refreshPortfolioPrices()"]');
@@ -1293,7 +1405,8 @@ function refreshAllLivePrices() {
 }
 
     // ==================== INITIALIZE ====================
-    window.onload = function() {
+    window.onload = async() => {
+    await loadMutualFunds();
   renderEquityTable();
   createGoldSilverChart();
   createRatioChart();
@@ -1305,6 +1418,7 @@ function refreshAllLivePrices() {
 
   // Auto load live prices
   setTimeout(() => {
+    
     fetchCryptoPrice('bitcoin', 'btc-price');
     fetchCryptoPrice('ethereum', 'eth-price');
     fetchCryptoPrice('tether', 'usdt-price');
