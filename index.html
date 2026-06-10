@@ -1322,10 +1322,16 @@ function filterMutualFunds(searchTerm) {
 
 
 function selectMutualFund(schemeCode, name) {
-  document.getElementById('p-name-search').value = name;
-  document.getElementById('p-name').value = name;
-  document.getElementById('p-scheme-code').value = schemeCode;
-  document.getElementById('mf-suggestions').classList.add('hidden');
+  const searchInput = document.getElementById('p-name-search');
+  const hiddenName  = document.getElementById('p-name');
+  const hiddenCode  = document.getElementById('p-scheme-code');
+  const suggestions = document.getElementById('mf-suggestions');
+
+  if (searchInput) searchInput.value = name;
+  if (hiddenName)  hiddenName.value  = name;
+  if (hiddenCode)  hiddenCode.value  = schemeCode;
+
+  if (suggestions) suggestions.classList.add('hidden');
 }
 
    function calculatePortfolioSummary() {
@@ -1520,36 +1526,57 @@ function showPortfolioModal() {
     }
 
   async function savePortfolioItem(isEdit = false) {
-  console.log("savePortfolioItem called, isEdit =", isEdit);
+  const type = document.getElementById('p-type').value;
+  let name = "";
+  let schemeCode = null;
 
-  const type = document.getElementById('p-type')?.value;
-  const nameInput = document.getElementById('p-name');
-  const qtyInput = document.getElementById('p-quantity');
-  const avgInput = document.getElementById('p-avgprice');
+  if (type === "MutualFund") {
+    // === MUTUAL FUND: Support both old and new input methods ===
+    const searchInput   = document.getElementById('p-name-search');
+    const hiddenName    = document.getElementById('p-name');
+    const hiddenCode    = document.getElementById('p-scheme-code');
+    const oldSelect     = document.getElementById('p-name'); // fallback
 
-  if (!nameInput || !qtyInput || !avgInput) {
-    console.error("One or more form fields are missing");
-    alert("Form error. Please close the modal and try again.");
-    return;
+    if (searchInput && searchInput.value.trim()) {
+      name = searchInput.value.trim();
+      schemeCode = hiddenCode ? hiddenCode.value : null;
+    } 
+    else if (hiddenName && hiddenName.value.trim()) {
+      name = hiddenName.value.trim();
+      schemeCode = hiddenCode ? hiddenCode.value : null;
+    } 
+    else if (oldSelect && oldSelect.value) {
+      // Old <select> fallback
+      const parts = oldSelect.value.split('|');
+      schemeCode = parts[0];
+      name = parts[1];
+    } 
+    else {
+      alert("Please search and select a Mutual Fund from the list");
+      return;
+    }
+
+    // Extra safety check
+    if (!schemeCode) {
+      alert("Scheme code is missing. Please re-select the Mutual Fund.");
+      return;
+    }
+
+  } else {
+    // Equity / Other types
+    const nameInput = document.getElementById('p-name');
+    if (!nameInput || !nameInput.value.trim()) {
+      alert("Please enter asset name");
+      return;
+    }
+    name = nameInput.value.trim();
   }
 
-  const name = nameInput.value.trim();
-  const quantity = parseFloat(qtyInput.value);
-  const avg_price = parseFloat(avgInput.value);
+  const quantity = parseFloat(document.getElementById('p-quantity').value) || 0;
+  const avg_price = parseFloat(document.getElementById('p-avgprice').value) || 0;
 
-  console.log("Values:", { type, name, quantity, avg_price });
-
-  // Validation
-  if (!name) {
-    alert("Please enter Asset Name");
-    return;
-  }
-  if (isNaN(quantity) || quantity <= 0) {
-    alert("Please enter a valid Quantity");
-    return;
-  }
-  if (isNaN(avg_price) || avg_price <= 0) {
-    alert("Please enter a valid Average Price");
+  if (quantity <= 0 || avg_price <= 0) {
+    alert("Quantity and Average Price must be greater than 0");
     return;
   }
 
@@ -1558,31 +1585,26 @@ function showPortfolioModal() {
     name: name,
     quantity: quantity,
     avg_price: avg_price,
-    scheme_code: null,
+    scheme_code: schemeCode,
     current_price: avg_price
   };
 
   try {
     const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
 
-    const response = await fetch(`${BACKEND_URL}/api/portfolio`, {
+    await fetch(`${BACKEND_URL}/api/portfolio`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(item)
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Server error: ${response.status} - ${error}`);
-    }
-
     closePortfolioModal();
     await loadPortfolio();
 
-    alert("✅ New asset added successfully!");
+    alert(isEdit ? "✅ Asset updated successfully!" : "✅ Asset added successfully!");
   } catch (error) {
-    console.error("Failed to save:", error);
-    alert("Failed to save. Check console (F12) for details.");
+    console.error("Save failed:", error);
+    alert("Failed to save. Check console for details.");
   }
 }
 
