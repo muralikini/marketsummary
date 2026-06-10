@@ -1052,20 +1052,19 @@ async function fetchLiveNiftyPrice(stockCode, elementId) {
 let portfolioItems = [];
 
     async function loadPortfolio() {
-      try {
-        const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
-        const res = await fetch(`${BACKEND_URL}/api/portfolio`);
-        const data = await res.json();
-        if (data.success) {
-          portfolioItems = data.data;
-          renderPortfolioTable();
-          calculatePortfolioSummary();
-        }
-      } catch (e) {
-        console.error(e);
-      }
+  try {
+    const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
+    const res = await fetch(`${BACKEND_URL}/api/portfolio`);
+    const data = await res.json();
+    if (data.success) {
+      portfolioItems = data.data || [];
+      renderPortfolioTable();
+      calculatePortfolioSummary();
     }
-
+  } catch (e) {
+    console.error("Failed to load portfolio from Firebase", e);
+  }
+}
     function renderPortfolioTable() {
   const tbody = document.getElementById('portfolio-table');
   tbody.innerHTML = '';
@@ -1183,7 +1182,7 @@ let portfolioItems = [];
       document.getElementById('portfolio-modal').classList.add('hidden');
     }
 
-    async function savePortfolioItem() {
+  async function savePortfolioItem() {
   const type = document.getElementById('p-type').value;
   let name = "", schemeCode = null;
 
@@ -1210,10 +1209,20 @@ let portfolioItems = [];
     current_price: avg_price 
   };
 
-  portfolioItems.push(item);
-  closePortfolioModal();
-  renderPortfolioTable();
-  calculatePortfolioSummary();
+  try {
+    const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
+    await fetch(`${BACKEND_URL}/api/portfolio`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(item)
+    });
+
+    closePortfolioModal();
+    loadPortfolio(); // Refresh from Firebase
+  } catch (e) {
+    alert("Failed to save to Firebase");
+    console.error(e);
+  }
 }
 
 // Refresh with live prices
@@ -1321,11 +1330,23 @@ async function fetchLivePrice(stockCode) {
   }
 }
 
-  function deletePortfolioItem(index) {
-  if (confirm("Delete this asset?")) {
-    portfolioItems.splice(index, 1);
-    renderPortfolioTable();
-    calculatePortfolioSummary();
+  async function deletePortfolioItem(index) {
+  if (!confirm("Delete this asset from Firebase?")) return;
+
+  const itemToDelete = portfolioItems[index];
+
+  try {
+    const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
+    await fetch(`${BACKEND_URL}/api/portfolio`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: itemToDelete.name, type: itemToDelete.type })
+    });
+
+    loadPortfolio(); // Refresh from Firebase
+  } catch (e) {
+    alert("Failed to delete from Firebase");
+    console.error(e);
   }
 }
 
