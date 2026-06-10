@@ -1250,7 +1250,23 @@ async function refreshPortfolioPrices() {
       }
     }
 
-    // Save entire portfolio to Firebase
+    // Save updated portfolio back to Firebase
+    await savePortfolioToFirebase();
+
+    renderPortfolioTable();
+    calculatePortfolioSummary();
+
+    alert(`✅ ${updatedCount} prices updated and saved to Firebase!`);
+  } catch (e) {
+    console.error(e);
+    alert("Some prices could not be updated. Check console.");
+  } finally {
+    btn.innerHTML = originalHTML;
+    btn.disabled = false;
+  }
+}
+
+// Save entire portfolio to Firebase
 async function savePortfolioToFirebase() {
   try {
     const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
