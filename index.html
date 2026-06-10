@@ -853,7 +853,7 @@
       // ==================== MUTUAL FUNDS JSON ====================
     let allMutualFunds = [];
 
-  async function loadMutualFunds() {
+    async function loadMutualFunds() {
   const CACHE_KEY = "mf_cache_v2";           // New version key
   const CACHE_EXPIRY_DAYS = 7;               // Refresh cache after 7 days
 
@@ -896,37 +896,6 @@
   } catch (error) {
     console.error("Failed to load mutual funds:", error);
     allMutualFunds = []; // fallback
-  }
-}
-
-  // If no valid cache, fetch from file
-  try {
-    console.log("Loading mutual funds from JSON file (first time or cache miss)...");
-    const response = await fetch('./mutual-funds.json');
-    
-    if (!response.ok) throw new Error("Failed to load mutual-funds.json");
-
-    allMutualFunds = await response.json();
-
-    // Save to localStorage for next time
-    const cacheObject = {
-      version: CACHE_VERSION,
-      data: allMutualFunds,
-      savedAt: new Date().toISOString()
-    };
-
-    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheObject));
-    
-    console.log(`✅ Loaded and cached ${allMutualFunds.length} mutual funds`);
-
-  } catch (error) {
-    console.error("Failed to load mutual funds:", error);
-    
-    // Fallback to small list if everything fails
-    allMutualFunds = [
-      { name: "Parag Parikh Flexi Cap Fund Direct Growth", scheme_code: "122639" },
-      { name: "Motilal Oswal Nasdaq 100 FoF Direct Growth", scheme_code: "120503" }
-    ];
   }
 }
 
