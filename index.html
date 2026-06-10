@@ -1609,7 +1609,7 @@ function showPortfolioModal() {
 }
 
 // Refresh Prices + Save to Firebase (Fixed)
-async function refreshPortfolioPrices() {
+/*async function refreshPortfolioPrices() {
   const btn = event.currentTarget;
   const originalText = btn.innerHTML;
   btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Updating Prices...`;
@@ -1648,6 +1648,52 @@ async function refreshPortfolioPrices() {
   } catch (error) {
     console.error("Refresh failed:", error);
     alert("Some prices could not be updated. Check console.");
+  } finally {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
+}*/
+
+async function refreshPortfolioPrices() {
+  const btn = event.currentTarget;
+  const originalText = btn.innerHTML;
+  btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Refreshing Prices...`;
+  btn.disabled = true;
+
+  let successCount = 0;
+  let failedCount = 0;
+
+  try {
+    for (let item of portfolioItems) {
+      if (item.type !== "MutualFund" || !item.scheme_code) continue;
+
+      try {
+        const newPrice = await fetchMFNav(item.scheme_code);
+
+        if (newPrice && newPrice > 0) {
+          item.current_price = newPrice;
+          successCount++;
+          console.log(`✅ ${item.name} → ₹${newPrice}`);
+        } else {
+          failedCount++;
+          console.warn(`⚠️ No price returned for ${item.name} (scheme_code: ${item.scheme_code})`);
+        }
+      } catch (err) {
+        failedCount++;
+        console.error(`❌ Error fetching price for ${item.name}:`, err);
+      }
+    }
+
+    // Save all updates to Firebase
+    await savePortfolioToFirebase();
+
+    renderPortfolioTable();
+    calculatePortfolioSummary();
+
+    alert(`✅ Refresh complete!\nUpdated: ${successCount} | Failed: ${failedCount}`);
+  } catch (error) {
+    console.error("Overall refresh failed:", error);
+    alert("Refresh failed. Check console for details.");
   } finally {
     btn.innerHTML = originalText;
     btn.disabled = false;
@@ -1704,14 +1750,20 @@ async function fetchMFNav(schemeCode) {
     });
 
     if (!res.ok) {
-      console.error("Backend error:", await res.text());
+      console.error(`Backend returned ${res.status} for scheme_code ${schemeCode}`);
       return null;
     }
 
     const data = await res.json();
-    return data.success && data.nav ? parseFloat(data.nav) : null;
+
+    if (!data.success || !data.nav) {
+      console.warn(`No NAV data for scheme_code: ${schemeCode}`, data);
+      return null;
+    }
+
+    return parseFloat(data.nav);
   } catch (e) {
-    console.error("MF NAV fetch failed for", schemeCode, e);
+    console.error(`Network error fetching NAV for ${schemeCode}:`, e);
     return null;
   }
 }
