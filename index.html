@@ -28,6 +28,7 @@
         <button onclick="showTab(0)" class="nav-btn px-5 py-2 rounded-xl" id="nav-0">Dashboard</button>
         <button onclick="showTab(1)" class="nav-btn px-5 py-2 rounded-xl" id="nav-1">Holdings</button>
         <button onclick="showTab(2)" class="nav-btn px-5 py-2 rounded-xl" id="nav-2">Analytics</button>
+        <button onclick="showTab(3)" class="nav-btn px-5 py-2 rounded-xl" id="nav-3">Portfolio</button>
       </div>
     </div>
 
@@ -383,6 +384,65 @@
         </div>
       </div>
     </div>
+    <!-- ==================== PORTFOLIO TAB ==================== -->
+    <div id="tab-3-content" class="hidden">
+      <div class="bg-zinc-900 rounded-2xl p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-2xl font-semibold">My Complete Portfolio</h3>
+          <button onclick="addPortfolioItem()" class="bg-emerald-600 hover:bg-emerald-700 px-6 py-2 rounded-xl flex items-center gap-2">
+            <i class="fas fa-plus"></i> Add Asset
+          </button>
+        </div>
+
+        <!-- Summary -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div class="bg-zinc-950 rounded-xl p-5">
+            <p class="text-zinc-400 text-sm">Total Value</p>
+            <p id="total-portfolio-value" class="text-3xl font-bold text-emerald-400">₹0</p>
+          </div>
+          <div class="bg-zinc-950 rounded-xl p-5">
+            <p class="text-zinc-400 text-sm">Equity + MF</p>
+            <p id="equity-value" class="text-2xl font-bold">₹0</p>
+          </div>
+          <div class="bg-zinc-950 rounded-xl p-5">
+            <p class="text-zinc-400 text-sm">Fixed Income</p>
+            <p id="fixed-value" class="text-2xl font-bold">₹0</p>
+          </div>
+          <div class="bg-zinc-950 rounded-xl p-5">
+            <p class="text-zinc-400 text-sm">Physical Assets</p>
+            <p id="physical-value" class="text-2xl font-bold">₹0</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-zinc-700 text-zinc-400">
+                <th class="text-left py-3">Type</th>
+                <th class="text-left">Name</th>
+                <th class="text-right">Qty</th>
+                <th class="text-right">Avg Price</th>
+                <th class="text-right">Current Price</th>
+                <th class="text-right">Value</th>
+                <th class="text-right">P&amp;L %</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="portfolio-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Portfolio Modal -->
+  <div id="portfolio-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+    <div class="bg-zinc-900 rounded-2xl p-6 w-full max-w-md mx-4">
+      <h3 class="text-xl font-semibold mb-4" id="modal-title">Add Asset</h3>
+      <div id="portfolio-form" class="space-y-4"></div>
+    </div>
+  </div>
+
 
   </div>
 
@@ -985,6 +1045,146 @@ async function fetchLiveNiftyPrice(stockCode, elementId) {
   }
 }
 
+let portfolioItems = [];
+
+    async function loadPortfolio() {
+      try {
+        const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
+        const res = await fetch(`${BACKEND_URL}/api/portfolio`);
+        const data = await res.json();
+        if (data.success) {
+          portfolioItems = data.data;
+          renderPortfolioTable();
+          calculatePortfolioSummary();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderPortfolioTable() {
+      const tbody = document.getElementById('portfolio-table');
+      tbody.innerHTML = '';
+
+      portfolioItems.forEach((item, index) => {
+        const currentPrice = item.current_price || item.avg_price;
+        const value = item.quantity * currentPrice;
+        const pnl = item.current_price ? ((item.current_price - item.avg_price) / item.avg_price * 100).toFixed(2) : '0';
+
+        const row = document.createElement('tr');
+        row.className = "border-b border-zinc-800 hover:bg-zinc-800";
+        row.innerHTML = `
+          <td class="py-3">${item.type}</td>
+          <td class="py-3">${item.name}</td>
+          <td class="py-3 text-right">${item.quantity}</td>
+          <td class="py-3 text-right">₹${item.avg_price}</td>
+          <td class="py-3 text-right">₹${currentPrice}</td>
+          <td class="py-3 text-right font-medium">₹${value.toFixed(2)}</td>
+          <td class="py-3 text-right ${pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}">${pnl}%</td>
+          <td class="py-3">
+            <button onclick="editPortfolioItem(${index})" class="text-blue-400 mr-3">Edit</button>
+            <button onclick="deletePortfolioItem(${index})" class="text-red-400">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function calculatePortfolioSummary() {
+      let total = 0, equity = 0, fixed = 0, physical = 0;
+
+      portfolioItems.forEach(item => {
+        const value = item.quantity * (item.current_price || item.avg_price);
+        total += value;
+        if (["Equity", "MutualFund"].includes(item.type)) equity += value;
+        else if (["FD", "Bank"].includes(item.type)) fixed += value;
+        else physical += value;
+      });
+
+      document.getElementById('total-portfolio-value').textContent = `₹${total.toLocaleString('en-IN')}`;
+      document.getElementById('equity-value').textContent = `₹${equity.toLocaleString('en-IN')}`;
+      document.getElementById('fixed-value').textContent = `₹${fixed.toLocaleString('en-IN')}`;
+      document.getElementById('physical-value').textContent = `₹${physical.toLocaleString('en-IN')}`;
+    }
+
+    function addPortfolioItem() {
+      showPortfolioModal();
+    }
+
+    function editPortfolioItem(index) {
+      showPortfolioModal(portfolioItems[index], index);
+    }
+
+    function showPortfolioModal(item = null, editIndex = null) {
+      const modal = document.getElementById('portfolio-modal');
+      const form = document.getElementById('portfolio-form');
+
+      form.innerHTML = `
+        <select id="p-type" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
+          <option value="Equity">Equity</option>
+          <option value="MutualFund">Mutual Fund</option>
+          <option value="FD">Fixed Deposit</option>
+          <option value="Bank">Bank Account</option>
+          <option value="Gold">Physical Gold</option>
+          <option value="RealEstate">Real Estate</option>
+          <option value="Cash">Cash</option>
+          <option value="Other">Other</option>
+        </select>
+        <input id="p-name" placeholder="Name / Company / Scheme" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
+        <input id="p-quantity" type="number" placeholder="Quantity / Units" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
+        <input id="p-avgprice" type="number" placeholder="Average Price / NAV" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-6">
+        
+        <div class="flex gap-3">
+          <button onclick="savePortfolioItem(${editIndex})" class="flex-1 bg-emerald-600 hover:bg-emerald-700 py-3 rounded-xl">Save</button>
+          <button onclick="closePortfolioModal()" class="flex-1 bg-zinc-700 hover:bg-zinc-600 py-3 rounded-xl">Cancel</button>
+        </div>
+      `;
+
+      if (item) {
+        document.getElementById('p-type').value = item.type;
+        document.getElementById('p-name').value = item.name;
+        document.getElementById('p-quantity').value = item.quantity;
+        document.getElementById('p-avgprice').value = item.avg_price;
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closePortfolioModal() {
+      document.getElementById('portfolio-modal').classList.add('hidden');
+    }
+
+    async function savePortfolioItem(editIndex = null) {
+      const item = {
+        type: document.getElementById('p-type').value,
+        name: document.getElementById('p-name').value,
+        quantity: parseFloat(document.getElementById('p-quantity').value),
+        avg_price: parseFloat(document.getElementById('p-avgprice').value)
+      };
+
+      try {
+        const BACKEND_URL = "https://breeze-backend-i5j5.onrender.com";
+        await fetch(`${BACKEND_URL}/api/portfolio`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(item)
+        });
+
+        closePortfolioModal();
+        loadPortfolio();
+      } catch (e) {
+        alert("Failed to save");
+      }
+    }
+
+    async function deletePortfolioItem(index) {
+      if (confirm("Delete this asset?")) {
+        portfolioItems.splice(index, 1);
+        renderPortfolioTable();
+        calculatePortfolioSummary();
+      }
+    }
+
     // Refresh All
 function refreshAllLivePrices() {
   fetchCryptoPrice('bitcoin', 'btc-price');
@@ -1009,6 +1209,7 @@ function refreshAllLivePrices() {
   loadScripDropdown();
   loadSavedWatchlist();
   loadAnalyzeDropdown();
+  loadPortfolio();
 
   // Auto load live prices
   setTimeout(() => {
