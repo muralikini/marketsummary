@@ -1444,14 +1444,14 @@ function calculatePortfolioSummary() {
 
     
 
-    function editPortfolioItem(index) {
+function editPortfolioItem(index) {
   currentEditIndex = index;
   const item = portfolioItems[index];
 
   const modal = document.getElementById('portfolio-modal');
   const form = document.getElementById('portfolio-form');
 
-  // Build modal HTML
+  // Build clean modal
   form.innerHTML = `
     <select id="p-type" onchange="handlePortfolioTypeChange()" 
             class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
@@ -1468,53 +1468,52 @@ function calculatePortfolioSummary() {
 
     <input id="p-quantity" type="number" step="0.01" placeholder="Quantity / Units" 
            class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
-
+    
     <input id="p-avgprice" type="number" step="0.01" placeholder="Average Purchase Price / NAV" 
            class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-6">
 
     <div class="flex gap-3">
-      <button onclick="savePortfolioItem(true)" 
-              class="flex-1 bg-blue-600 hover:bg-blue-700 py-3 rounded-xl font-medium">
+      <button onclick="savePortfolioItem(true)" class="flex-1 bg-blue-600 hover:bg-blue-700 py-3 rounded-xl font-medium">
         Update Asset
       </button>
-      <button onclick="closePortfolioModal()" 
-              class="flex-1 bg-zinc-700 hover:bg-zinc-600 py-3 rounded-xl">
+      <button onclick="closePortfolioModal()" class="flex-1 bg-zinc-700 hover:bg-zinc-600 py-3 rounded-xl">
         Cancel
       </button>
     </div>
   `;
 
-  // Set type first
+  // Set type
   document.getElementById('p-type').value = item.type;
 
-  // Rebuild name input based on type
+  // Create correct input (searchable for MF)
   handlePortfolioTypeChange();
 
-  // Now set the values (after the inputs are created)
+  // Pre-fill values
   setTimeout(() => {
-    // Set name
     if (item.type === "MutualFund") {
-      const select = document.getElementById('p-name');
-      if (select && item.scheme_code) {
-        for (let option of select.options) {
-          if (option.value.startsWith(item.scheme_code + "|")) {
-            option.selected = true;
-            break;
-          }
-        }
-      }
+      // New searchable input method
+      const searchInput = document.getElementById('p-name-search');
+      const hiddenName  = document.getElementById('p-name');
+      const hiddenCode  = document.getElementById('p-scheme-code');
+
+      if (searchInput) searchInput.value = item.name || "";
+      if (hiddenName)  hiddenName.value  = item.name || "";
+      if (hiddenCode)  hiddenCode.value  = item.scheme_code || "";
+
     } else {
+      // Equity and other types
       const nameInput = document.getElementById('p-name');
       if (nameInput) nameInput.value = item.name || "";
     }
 
-    // Set quantity and avg price
+    // Fill quantity and price
     const qtyInput = document.getElementById('p-quantity');
     const avgInput = document.getElementById('p-avgprice');
 
     if (qtyInput) qtyInput.value = item.quantity || "";
     if (avgInput) avgInput.value = item.avg_price || "";
-  }, 50);
+
+  }, 120);
 
   modal.classList.remove('hidden');
 }
