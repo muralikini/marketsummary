@@ -1203,7 +1203,7 @@ function editPortfolioItem(index) {
   const modal = document.getElementById('portfolio-modal');
   const form = document.getElementById('portfolio-form');
 
-  // Build the modal
+  // 1. Build modal HTML
   form.innerHTML = `
     <select id="p-type" onchange="handlePortfolioTypeChange()" 
             class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3">
@@ -1225,48 +1225,55 @@ function editPortfolioItem(index) {
            class="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-6">
 
     <div class="flex gap-3">
-      <button onclick="savePortfolioItem(true)" 
-              class="flex-1 bg-blue-600 hover:bg-blue-700 py-3 rounded-xl font-medium">
+      <button onclick="savePortfolioItem(true)" class="flex-1 bg-blue-600 hover:bg-blue-700 py-3 rounded-xl font-medium">
         Update Asset
       </button>
-      <button onclick="closePortfolioModal()" 
-              class="flex-1 bg-zinc-700 hover:bg-zinc-600 py-3 rounded-xl">
+      <button onclick="closePortfolioModal()" class="flex-1 bg-zinc-700 hover:bg-zinc-600 py-3 rounded-xl">
         Cancel
       </button>
     </div>
   `;
 
-  // Set type
-  document.getElementById('p-type').value = item.type;
+  // 2. Set type
+  const typeSelect = document.getElementById('p-type');
+  typeSelect.value = item.type;
 
-  // Create the correct input (searchable for MF)
+  // 3. Create correct input fields
   handlePortfolioTypeChange();
 
-  // Pre-fill values after DOM is ready
+  // 4. Pre-fill values with extra safety
   setTimeout(() => {
+    console.log("Pre-filling edit modal for:", item);
+
     if (item.type === "MutualFund") {
       const searchInput = document.getElementById('p-name-search');
       const hiddenName  = document.getElementById('p-name');
       const hiddenCode  = document.getElementById('p-scheme-code');
 
-      if (searchInput) searchInput.value = item.name || "";
-      if (hiddenName)  hiddenName.value  = item.name || "";
-      if (hiddenCode)  hiddenCode.value  = item.scheme_code || "";
+      if (searchInput) {
+        searchInput.value = item.name || "";
+      }
+      if (hiddenName) {
+        hiddenName.value = item.name || "";
+      }
+      if (hiddenCode) {
+        hiddenCode.value = item.scheme_code || "";
+      }
 
     } else {
-      // Equity and other types
+      // Equity and others
       const nameInput = document.getElementById('p-name');
       if (nameInput) nameInput.value = item.name || "";
     }
 
-    // Fill quantity and avg price for all types
-    const qtyInput = document.getElementById('p-quantity');
-    const avgInput = document.getElementById('p-avgprice');
+    // Fill quantity and price for all types
+    const qty = document.getElementById('p-quantity');
+    const avg = document.getElementById('p-avgprice');
 
-    if (qtyInput) qtyInput.value = item.quantity || "";
-    if (avgInput) avgInput.value = item.avg_price || "";
+    if (qty) qty.value = item.quantity || "";
+    if (avg) avg.value = item.avg_price || "";
 
-  }, 100); // Slightly longer timeout for safety
+  }, 150);
 
   modal.classList.remove('hidden');
 }
