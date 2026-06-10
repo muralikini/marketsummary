@@ -845,11 +845,11 @@
     async function loadMutualFunds() {
       try {
         const response = await fetch('./mutual-funds.json');
-        if (!response.ok) throw new Error('File not found');
+        if (!response.ok) throw new Error('JSON file not found');
         allMutualFunds = await response.json();
-        console.log(`✅ Loaded ${allMutualFunds.length} mutual funds`);
+        console.log(`✅ Successfully loaded ${allMutualFunds.length} mutual funds`);
       } catch (error) {
-        console.warn('Using fallback MF list', error);
+        console.error('❌ Failed to load mutual-funds.json:', error);
         allMutualFunds = [
           { name: "Parag Parikh Flexi Cap Fund Direct Growth", scheme_code: "122639" },
           { name: "Motilal Oswal Nasdaq 100 FoF Direct Growth", scheme_code: "120503" }
@@ -1121,7 +1121,7 @@ let portfolioItems = [];
     // ==================== PORTFOLIO (with MF support) ====================
     
 
-    function showPortfolioModal(item = null) {
+    function showPortfolioModal() {
       const modal = document.getElementById('portfolio-modal');
       const form = document.getElementById('portfolio-form');
 
@@ -1143,12 +1143,6 @@ let portfolioItems = [];
           <button onclick="closePortfolioModal()" class="flex-1 bg-zinc-700 hover:bg-zinc-600 py-3 rounded-xl">Cancel</button>
         </div>
       `;
-
-      if (item) {
-        document.getElementById('p-type').value = item.type;
-        document.getElementById('p-quantity').value = item.quantity;
-        document.getElementById('p-avgprice').value = item.avg_price;
-      }
 
       handlePortfolioTypeChange();
       modal.classList.remove('hidden');
@@ -1240,7 +1234,7 @@ async function fetchLivePrice(stockCode) {
   }
 }
 
-    function deletePortfolioItem(index) {
+  function deletePortfolioItem(index) {
       if (confirm("Delete this asset?")) {
         portfolioItems.splice(index, 1);
         renderPortfolioTable();
@@ -1263,7 +1257,9 @@ function refreshAllLivePrices() {
 }
 
     // ==================== INITIALIZE ====================
-    window.onload = function() {
+    //window.onload = function() {
+    window.onload = async () => {
+      await loadMutualFunds();
   renderEquityTable();
   createGoldSilverChart();
   createRatioChart();
@@ -1289,6 +1285,7 @@ function refreshAllLivePrices() {
   }, 1500);
 
   showTab(0);
+  console.log("Dashboard initialized with Mutual Funds support");
 };
   </script>
 </body>
